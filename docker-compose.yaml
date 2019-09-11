@@ -1,0 +1,6 @@
+version: '3'
+services:
+  hexastore:
+    build: .
+    ports:
+      - "8000:80"

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RocksDbNative" Version="5.17.2" />
+    <PackageReference Include="RocksDbSharp" Version="5.17.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hexastore\Hexastore.csproj" />
+  </ItemGroup>
+
+</Project>

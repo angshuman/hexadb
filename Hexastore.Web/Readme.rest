@@ -1,0 +1,31 @@
+@hostname = localhost
+@port = 5000
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@setid = 1
+
+POST http://{{host}}/api/sets/{{setid}} HTTP/1.1
+content-type: application/json
+
+{
+	"name" : "a",
+	"addredd" : "addr1",
+	"teaches" : {
+		"name" : "b",
+		"address" : "addr2"
+	}
+}
+
+
+###
+
+GET http://{{host}}/api/sets/{{setid}}
+
+
+###
+
+GET http://{{host}}/api/sets/{{setid}}/subject/5
+
+###
+
+GET http://{{host}}/api/sets/{{setid}}/subject/1?expand=teaches&level=2

@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexastore.Web", "Hexastore.Web\Hexastore.Web.csproj", "{83C88235-3496-4B18-AC09-D0F2F48D965B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexastore", "Hexastore\Hexastore.csproj", "{E20D0035-1E52-41B4-A244-DE4142AEF45E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexastore.Rocks", "Hexastore.Rocks\Hexastore.Rocks.csproj", "{5083D115-4595-41B8-9D6B-8C7474905D2B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexastore.Test", "Hexastore.Test\Hexastore.Test.csproj", "{446D86FC-60E2-4467-BFC8-AE0A22BC38B4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5D70A57E-85C5-4860-9278-5DFD5D17A128}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yaml = docker-compose.yaml
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83C88235-3496-4B18-AC09-D0F2F48D965B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83C88235-3496-4B18-AC09-D0F2F48D965B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83C88235-3496-4B18-AC09-D0F2F48D965B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83C88235-3496-4B18-AC09-D0F2F48D965B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E20D0035-1E52-41B4-A244-DE4142AEF45E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E20D0035-1E52-41B4-A244-DE4142AEF45E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E20D0035-1E52-41B4-A244-DE4142AEF45E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E20D0035-1E52-41B4-A244-DE4142AEF45E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5083D115-4595-41B8-9D6B-8C7474905D2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5083D115-4595-41B8-9D6B-8C7474905D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5083D115-4595-41B8-9D6B-8C7474905D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5083D115-4595-41B8-9D6B-8C7474905D2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{446D86FC-60E2-4467-BFC8-AE0A22BC38B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{446D86FC-60E2-4467-BFC8-AE0A22BC38B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{446D86FC-60E2-4467-BFC8-AE0A22BC38B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{446D86FC-60E2-4467-BFC8-AE0A22BC38B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5A249FF1-EB3D-4F84-8ABF-98C778DD2E9B}
+	EndGlobalSection
+EndGlobal
