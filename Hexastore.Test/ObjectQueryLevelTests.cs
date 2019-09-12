@@ -254,7 +254,7 @@ namespace Hexastore.Test
             var rsp = new ObjectQueryExecutor().Query(query, set);
             var values = rsp.Values.Select(x => x.Subject).ToArray();
             CollectionAssert.AreEqual(values, new string[] { "i00", "i01", "i02", "i03", "i04", "i05", "i06", "i07", "i08", "i09" });
-            Assert.AreEqual(new Triple("i09", "name", TripleObject.FromData("name09")), rsp.Continuation);
+            Assert.AreEqual((Continuation)new Triple("i09", "name", TripleObject.FromData("name09")), rsp.Continuation);
         }
 
         [TestMethod]

@@ -39,7 +39,14 @@ namespace Hexastore.Query
                 throw _storeErrors.AtLeastOneFilter;
             }
 
-            var rsp = CreateConstraint(graph, firstFilter.Key, firstFilter.Value, query.Continuation);
+            var cTriple = query.Continuation != null
+                ? new Triple(
+                    query.Continuation.S,
+                    query.Continuation.P,
+                    new TripleObject(query.Continuation.O) { IsID = query.Continuation.IsId })
+                : null;
+
+            var rsp = CreateConstraint(graph, firstFilter.Key, firstFilter.Value, cTriple);
             foreach (var filter in query.Filter.Skip(1)) {
                 rsp = ApplyConstraint(rsp, graph, filter.Key, filter.Value);
             }
@@ -57,11 +64,19 @@ namespace Hexastore.Query
             }
 
             var responseTriples = rsp.Take(query.PageSize).ToArray();
-            var continuation = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
+            var cont = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
             var queryResponse = new ObjectQueryResponse
             {
                 Values = responseTriples,
-                Continuation = continuation
+                Continuation = cont != null
+                ? new Continuation
+                {
+                    S = cont.Subject,
+                    P = cont.Predicate,
+                    O = cont.Object.ToTypedJSON(),
+                    IsId = cont.Object.IsID
+                }
+                : null
             };
             return queryResponse;
         }
