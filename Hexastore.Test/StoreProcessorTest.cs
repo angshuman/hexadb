@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using Hexastore.Parser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -133,7 +132,7 @@ namespace Hexastore.Test
         }
 
         [TestMethod]
-        public void Patch_Returns_With_Relationship()
+        public void Patch_With_Relationship_Returns()
         {
             var patch = new
             {
@@ -173,7 +172,7 @@ namespace Hexastore.Test
         }
 
         [TestMethod]
-        public void Patch_Returns_With_Values()
+        public void Patch_With_Values_Returns()
         {
             var doc = new
             {

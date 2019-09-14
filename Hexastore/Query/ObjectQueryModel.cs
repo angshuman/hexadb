@@ -56,6 +56,11 @@ namespace Hexastore.Query
             }
             return t.S.Equals(S) && t.P.Equals(P) && t.O.CompareTo(O) == 0 && t.IsId == IsId;
         }
+
+        public override int GetHashCode()
+        {
+            return (S + P + O + IsId.ToString()).GetHashCode();
+        }
     }
 
     public class QueryUnit
