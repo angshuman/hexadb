@@ -7,7 +7,8 @@ namespace Hexastore.Processor
     public interface IStoreProcesor
     {
         void Assert(string storeId, JToken value, bool strict);
-        void Patch(string storeId, JObject input);
+        void PatchJson(string storeId, JObject input);
+        void PatchTriple(string storeId, JObject input);
         void AssertMeta(string storeId, JObject value);
         JObject GetSet(string storeId);
         (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId);

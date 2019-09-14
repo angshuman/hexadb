@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Hexastore.env">
+    <None Update="Hexastore.bk.env">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

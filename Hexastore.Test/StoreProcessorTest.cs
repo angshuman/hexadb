@@ -151,7 +151,7 @@ namespace Hexastore.Test
                     }
                 }
             };
-            StoreProcessor.Patch("app2", JObject.FromObject(patch));
+            StoreProcessor.PatchJson("app2", JObject.FromObject(patch));
 
             var rsp = StoreProcessor.GetSubject("app2", "100", null, 3);
             var expected = new
@@ -214,7 +214,7 @@ namespace Hexastore.Test
             };
 
             StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
-            StoreProcessor.Patch("app3", JObject.FromObject(patch));
+            StoreProcessor.PatchJson("app3", JObject.FromObject(patch));
 
             var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
             var rspString = TripleConverter.FromJson(rsp).ToArray();

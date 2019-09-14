@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Hexastore.Processor;
@@ -58,6 +59,33 @@ namespace Hexastore.Web.Controllers
             }
         }
 
+        [HttpPost("{storeId}/ingest")]
+        public async Task<IActionResult> Ingest(string storeId, [FromBody]JObject body)
+        {
+            string url = body["url"]?.ToString();
+            if (string.IsNullOrEmpty(url)) {
+                return BadRequest();
+            }
+            try {
+                var (_, expand, level, _) = GetParams();
+                using (var client = new HttpClient()) {
+                    var response = await client.GetStringAsync(url);
+                    var data = JToken.Parse(response);
+                    var e = new
+                    {
+                        operation = "POST",
+                        strict = true,
+                        data
+                    };
+                    await SendEvent(storeId, JObject.FromObject(e));
+                    return Accepted();
+                }
+
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
         [HttpPost("{storeId}")]
         public async Task<IActionResult> Post(string storeId, [FromBody]JToken data)
         {
@@ -76,13 +104,29 @@ namespace Hexastore.Web.Controllers
             }
         }
 
-        [HttpPatch("{storeId}")]
-        public async Task<IActionResult> Patch(string storeId, [FromBody]JObject data)
+        [HttpPatch("{storeId}/json")]
+        public async Task<IActionResult> PatchJson(string storeId, [FromBody]JObject data)
         {
             try {
                 var e = new
                 {
-                    operation = "PATCH",
+                    operation = "PATCH_JSON",
+                    data
+                };
+                await SendEvent(storeId, JObject.FromObject(e));
+                return Accepted();
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+        [HttpPatch("{storeId}/triple")]
+        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]JObject data)
+        {
+            try {
+                var e = new
+                {
+                    operation = "PATCH_TRIPLE",
                     data
                 };
                 await SendEvent(storeId, JObject.FromObject(e));
