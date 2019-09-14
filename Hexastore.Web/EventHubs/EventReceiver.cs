@@ -12,12 +12,13 @@ using Newtonsoft.Json.Linq;
 namespace Hexastore.Web.EventHubs
 {
 
-    public class EventReceiver : IPartitionReceiveHandler
+    public class EventReceiver : IPartitionReceiveHandler, IDisposable
     {
         private readonly Dictionary<string, TaskCompletionSource<bool>> _completions = new Dictionary<string, TaskCompletionSource<bool>>();
         private readonly ILogger<EventReceiver> _logger;
         private readonly Checkpoint _checkpoint;
         private readonly IStoreProcesor _storeProcessor;
+        private bool _running = true;
 
         private int _eventCount;
 
@@ -28,7 +29,6 @@ namespace Hexastore.Web.EventHubs
             _storeProcessor = storeProcessor;
 
             _eventCount = 0;
-            _ = LogCount();
         }
 
         public int MaxBatchSize
@@ -42,10 +42,10 @@ namespace Hexastore.Web.EventHubs
             }
         }
 
-        private async Task LogCount()
+        public async Task LogCount()
         {
             var lastCount = 0;
-            while (true) {
+            while (_running) {
                 await Task.Delay(10000);
                 _logger.LogInformation($"{DateTime.Now.ToString("hh':'mm':'ss")} Events: {_eventCount} Diff: {_eventCount - lastCount}");
                 lastCount = _eventCount;
@@ -87,8 +87,11 @@ namespace Hexastore.Web.EventHubs
                     case "POST":
                         _storeProcessor.Assert(storeId, data, strict ?? false);
                         break;
-                    case "PATCH":
-                        _storeProcessor.Patch(storeId, (JObject)data);
+                    case "PATCH_JSON":
+                        _storeProcessor.PatchJson(storeId, (JObject)data);
+                        break;
+                    case "PATCH_TRIPLE":
+                        _storeProcessor.PatchTriple(storeId, (JObject)data);
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown operation {operation}");
@@ -113,6 +116,11 @@ namespace Hexastore.Web.EventHubs
         public void SetCompletion(string guid, TaskCompletionSource<bool> tc)
         {
             _completions[guid] = tc;
+        }
+
+        public void Dispose()
+        {
+            _running = false;
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Hexastore.Processor
             }
         }
 
-        public void Patch(string storeId, JObject input)
+        public void PatchJson(string storeId, JObject input)
         {
             var patches = TripleConverter.FromJson(input);
             var (data, _, _) = GetSetGraphs(storeId);
@@ -68,6 +68,21 @@ namespace Hexastore.Processor
             data.Retract(retract);
             var assert = patches.Where(x => !x.Object.IsNull).ToArray();
             data.Assert(assert);
+        }
+
+        public void PatchTriple(string storeId, JObject input)
+        {
+            var (data, _, _) = GetSetGraphs(storeId);
+            var remove = input["remove"];
+            if (remove != null && remove is JObject) {
+                var triples = TripleConverter.FromJson((JObject)remove);
+                data.Retract(triples);
+            }
+            var add = input["add"];
+            if (add != null && add is JObject) {
+                var triples = TripleConverter.FromJson((JObject)add);
+                data.Assert(triples);
+            }
         }
 
         public void AssertMeta(string storeId, JObject value)

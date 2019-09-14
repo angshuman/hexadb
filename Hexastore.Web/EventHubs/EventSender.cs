@@ -42,6 +42,7 @@ namespace Hexastore.Web.EventHubs
                 var cp = _checkpoint.Get(Constants.EventHubCheckpoint);
                 _receiver = _eventHubClient.CreateReceiver(PartitionReceiver.DefaultConsumerGroupName, _eventHubPartition, EventPosition.FromOffset(cp ?? "-1"));
                 _receiver.SetReceiveHandler(_storeReceiver);
+                _ = _storeReceiver.LogCount();
             }
         }
 
