@@ -7,7 +7,7 @@ in any arbitrary JSON document.
 
 ## Naming
 
-HexaDb breaks JSON documents to RDF triples in the format os (S,P,O) and creates six indices. All triples are queryable by those six indices
+HexaDb breaks JSON documents to RDF triples in the format of (S,P,O) and creates six indices. All triples are queryable by those six indices
 S,
 P,
 O,
@@ -21,7 +21,7 @@ Thus *HexaDb*.
 
 `$ docker-compose up`
 
-### Creating your first document
+### Creating your first objects
 
 `POST /api/store/app01`
 
@@ -57,6 +57,7 @@ Thus *HexaDb*.
     }
 ]
 ```
+The top level objects in the POST call need to have an id field. The nested objects will be assigned id's based on the top level id. This POST call creates four different objectswith links. Nested objects are considered top level and can be queried indepently. 
 
 ### Get a document by id
 
