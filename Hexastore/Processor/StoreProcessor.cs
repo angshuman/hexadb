@@ -141,7 +141,7 @@ namespace Hexastore.Processor
                     rspGraph.Assert(expanded).ToList();
                     return TripleConverter.ToJson(x.Subject, rspGraph);
                 }),
-                result.Continuation
+                continuation = result.Continuation
             };
             return JObject.FromObject(response);
         }

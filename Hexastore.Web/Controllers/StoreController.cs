@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Hexastore.Processor;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Web.Controllers
@@ -13,11 +14,13 @@ namespace Hexastore.Web.Controllers
     [ApiController]
     public class StoreController : StoreControllerBase
     {
-        private readonly IStoreProcesor storeProcessor;
+        private readonly IStoreProcesor _storeProcessor;
+        private readonly ILogger _logger;
 
-        public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor) : base(receiver, processor)
+        public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor, ILogger<StoreController> logger) : base(receiver, processor)
         {
-            this.storeProcessor = storeProcessor;
+            _storeProcessor = storeProcessor;
+            _logger = logger;
         }
 
         [HttpGet("health")]
@@ -40,7 +43,7 @@ namespace Hexastore.Web.Controllers
         {
             try {
                 var (_, expand, level, _) = GetParams();
-                var rsp = storeProcessor.GetSubject(storeId, subject, expand, level);
+                var rsp = _storeProcessor.GetSubject(storeId, subject, expand, level);
                 return Ok(rsp);
             } catch (Exception e) {
                 return HandleException(e);
@@ -52,7 +55,7 @@ namespace Hexastore.Web.Controllers
         {
             try {
                 var (_, expand, level, _) = GetParams();
-                var rsp = storeProcessor.Query(storeId, query, expand, level);
+                var rsp = _storeProcessor.Query(storeId, query, expand, level);
                 return Ok(rsp);
             } catch (Exception e) {
                 return HandleException(e);
@@ -70,14 +73,37 @@ namespace Hexastore.Web.Controllers
                 var (_, expand, level, _) = GetParams();
                 using (var client = new HttpClient()) {
                     var response = await client.GetStringAsync(url);
-                    var data = JToken.Parse(response);
-                    var e = new
-                    {
-                        operation = "POST",
-                        strict = true,
-                        data
-                    };
-                    await SendEvent(storeId, JObject.FromObject(e));
+                    var data = JArray.Parse(response);
+
+                    var batch = new JArray();
+                    foreach (var item in data) {
+
+                        batch.Add(item);
+
+                        if (batch.Count == 1000) {
+                            var e = new
+                            {
+                                operation = "POST",
+                                strict = true,
+                                data = batch
+                            };
+                            await SendEvent(storeId, JObject.FromObject(e));
+                            _logger.LogInformation("Batch ingestion", batch.Count);
+                            batch = new JArray();
+                        }
+                    }
+
+                    if (batch.Count > 0) {
+                        var e = new
+                        {
+                            operation = "POST",
+                            strict = true,
+                            data = batch
+                        };
+                        await SendEvent(storeId, JObject.FromObject(e));
+                        _logger.LogInformation("Batch ingestion", batch.Count);
+
+                    }
                     return Accepted();
                 }
 
