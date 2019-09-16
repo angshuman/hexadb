@@ -82,6 +82,30 @@ The top level objects in the POST call need to have an id field. The nested obje
 }
 ```
 
+### Create a relationship
+
+Creating a relationship is just another POST with id references to existing objects. This can also be done inline.
+
+`POST /api/store/app01`
+
+```json
+{
+    "id" : "room:0",
+    "name" : "Room Zero",
+    "type" : "room",
+    "descrition" : "Has two sensors",
+    "sensors" : [
+        {
+            "id" : "sensor:0"
+        },
+        {
+            "id" : "sensor:1"
+        }
+    ]
+}
+```
+
+
 ### Find a document by relationship query
 
 `POST /api/store/app01/query`
@@ -91,11 +115,11 @@ The top level objects in the POST call need to have an id field. The nested obje
     "filter": {
         "type": {
             "op": "eq",
-            "value": "sensor"
+            "value": "room"
         },
         "outgoing": [
             {
-                "path": "marker",
+                "path": "sensors#marker",
                 "target": {
                     "filter": {
                         "green": {
@@ -119,12 +143,12 @@ The top level objects in the POST call need to have an id field. The nested obje
     "filter": {
         "type": {
             "op": "eq",
-            "value": "sensor"
+            "value": "room"
         },
         "outgoing": [
             {
                 "path": "*",
-                "level" : 2,
+                "level" : 3,
                 "target": {
                     "filter": {
                         "green": {
@@ -153,6 +177,7 @@ The top level objects in the POST call need to have an id field. The nested obje
     }
 }
 ```
+Also see [wiki](https://github.com/angshuman/hexadb/wiki/Simple-Relationships "Simple Relationships")
 
 
 
