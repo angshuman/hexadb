@@ -65,7 +65,9 @@ namespace Hexastore.Web.EventHubs
 
         public void Dispose()
         {
-            _eventHubClient.Close();
+            if (_eventHubClient != null) {
+                _eventHubClient.Close();
+            }
         }
     }
 }

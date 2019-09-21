@@ -7,19 +7,24 @@ in any arbitrary JSON document.
 
 ## Naming
 
-HexaDb breaks JSON documents to RDF triples in the format of (S,P,O) and creates six indices. All triples are queryable by those six indices
-S,
+HexaDb breaks JSON documents to RDF triples in the format of `(S,P,O)` and creates six indices. All triples are queryable by those six indices
+`S,
 P,
 O,
 SP,
 PO,
-OS
+OS`
 
-Thus *HexaDb*.
+Thus **HexaDb**.
 
 ## Building and running locally
 
 `$ docker-compose up`
+
+## Explore through POSTMAN
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/8901e8658605b63f1edc#?env%5BHexDocker%20Local%20%5D=W3sia2V5IjoiaG9zdCIsInZhbHVlIjoibG9jYWxob3N0IiwiZW5hYmxlZCI6dHJ1ZX0seyJrZXkiOiJwb3J0IiwidmFsdWUiOiI4MDAwIiwiZW5hYmxlZCI6dHJ1ZX0seyJrZXkiOiJhcHBJZCIsInZhbHVlIjoiYXBwMDAyIiwiZW5hYmxlZCI6dHJ1ZX1d)
+
+## Getting started with the API's
 
 ### Creating your first objects
 
@@ -84,7 +89,7 @@ The top level objects in the POST call need to have an id field. The nested obje
 
 ### Create a relationship
 
-Creating a relationship is just another POST with id references to existing objects. This can also be done inline.
+Posting a nested object automatically creates relationships. In HexaDb all objects are considered to be a top-level object. New objects and relationships can be created with just another POST with id references to existing objects. This is similar to POST with inline objects. But the object does not need to be inline. An id reference to an existing object is good enough.
 
 `POST /api/store/app01`
 
@@ -166,6 +171,8 @@ Creating a relationship is just another POST with id references to existing obje
 ### Update a document
 
 `PATCH /api/store/app01/json`
+
+A json-merge-patch style endpoint is available. Below is an example that changes the name of the object pointed to by `sensor:0` and modifies the `marker` relationship to contain a single object with no `status` (deleted) and value of `red` with `1.0`.
 
 ```json
 {
