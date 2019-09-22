@@ -21,10 +21,14 @@ Thus **HexaDb**.
 
 `$ docker-compose up`
 
-## Explore through POSTMAN
+## Explore through Postman
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/8901e8658605b63f1edc#?env%5BHexDocker%20Local%20%5D=W3sia2V5IjoiaG9zdCIsInZhbHVlIjoibG9jYWxob3N0IiwiZW5hYmxlZCI6dHJ1ZX0seyJrZXkiOiJwb3J0IiwidmFsdWUiOiI4MDAwIiwiZW5hYmxlZCI6dHJ1ZX0seyJrZXkiOiJhcHBJZCIsInZhbHVlIjoiYXBwMDAyIiwiZW5hYmxlZCI6dHJ1ZX1d)
 
 ## Getting started with the API's
+
+Let's create a graph. First we will create two object's with nested JSON. Internally in HexaDb every nested object is considered a top level object with an incoming relationship.
+
+Later, we will create another object that references other objects by id.
 
 ### Creating your first objects
 
@@ -98,7 +102,7 @@ Posting a nested object automatically creates relationships. In HexaDb all objec
     "id" : "room:0",
     "name" : "Room Zero",
     "type" : "room",
-    "descrition" : "Has two sensors",
+    "description" : "Has two sensors",
     "sensors" : [
         {
             "id" : "sensor:0"
@@ -109,6 +113,10 @@ Posting a nested object automatically creates relationships. In HexaDb all objec
     ]
 }
 ```
+
+This creates the following structure
+
+![Graph](hexadb-readme.svg)
 
 
 ### Find a document by relationship query
