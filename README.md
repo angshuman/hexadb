@@ -67,13 +67,15 @@ Let's create a graph. First we will create two object's with nested JSON objects
 ```
 The top level objects in the POST call need to have an id field. The nested objects will be assigned id's based on the top level id. This POST call creates four different objectswith links. Nested objects are considered top level and can be queried indepently. 
 
-### Get a document by id
+### Get an object by id
 
 `GET /api/store/app01/sensor:1`
 
-### Find a document by a top level property comparison
+### Find an object by a top level property comparison
 
 `POST /api/store/app01/query`
+
+This query finds all object with `type` of `sensor` and with a `temperature` property > `65`.
 
 ```json
 {
@@ -118,7 +120,11 @@ This creates the following structure
 ![Graph](hexadb-readme.svg)
 
 
-### Find a document by relationship query
+### Find an object by relationship query
+
+We are trying to find rooms that have a sensor with marker of green gt 9. Now this can be though of as the following pattern search in the graph. Notice the path is a `#` separated list of paths. In this case it is `sensors#marker`
+
+![Graph](hexadb-readme-outgoing-path.svg)
 
 `POST /api/store/app01/query`
 
@@ -128,25 +134,27 @@ This creates the following structure
         "type": {
             "op": "eq",
             "value": "room"
-        },
-        "outgoing": [
-            {
-                "path": "sensors#marker",
-                "target": {
-                    "filter": {
-                        "green": {
-                            "op": "gt",
-                            "value": 9
-                        }
+        }
+    },
+    "outgoing": [
+        {
+            "path": "sensors#marker",
+            "target": {
+                "filter": {
+                    "green": {
+                        "op": "gt",
+                        "value": 9
                     }
                 }
             }
-        ]
-    }
+        }
+    ]
 }
 ```
 
-### Find a document by nesting level
+### Find an object by nesting level
+
+Here is the same query without specifying the explicit relationships. This is querying all outgoing objects in the nesting level of `3`. Notice that the `path` is `*` so it will match any objects in that vicinity.
 
 `POST /api/store/app01/query`
 
@@ -156,26 +164,57 @@ This creates the following structure
         "type": {
             "op": "eq",
             "value": "room"
-        },
-        "outgoing": [
-            {
-                "path": "*",
-                "level" : 3,
-                "target": {
-                    "filter": {
-                        "green": {
-                            "op": "gt",
-                            "value": 9
-                        }
+        }
+    },
+    "outgoing": [
+        {
+            "path": "*",
+            "level": 3,
+            "target": {
+                "filter": {
+                    "green": {
+                        "op": "gt",
+                        "value": 9
                     }
                 }
             }
-        ]
-    }
+        }
+    ]
 }
 ```
 
-### Update a document
+### Find an object with incoming relationship
+
+Similar to the outgoing queries it is also possible to query objects that are pointed to by other objects. E.q. in a `parent->child` relatioship children can be found by `incoming` query from the parent.
+
+Incoming queries can also be done with nesting level with `*` as path.
+
+```json
+{
+    "filter": {
+        "type": {
+            "op": "eq",
+            "value": "room"
+        }
+    },
+    "outgoing": [
+        {
+            "path": "sensors#marker",
+            "target": {
+                "filter": {
+                    "green": {
+                        "op": "gt",
+                        "value": 9
+                    }
+                }
+            }
+        }
+    ]
+}
+```
+
+
+### Update an object
 
 `PATCH /api/store/app01/json`
 
@@ -188,6 +227,33 @@ A json-merge-patch style endpoint is available. Below is an example that changes
     "marker": {
         "status": null,
         "red": 1.0
+    }
+}
+```
+
+`PATCH /api/store/app01/triple`
+
+Hexadb also supports patching at the triple level. The patches are performed with two separate `add` and `remove` sections. The `remove` is performed before `add`.
+
+```json
+{
+    "remove": {
+        "id": "room:0",
+        "sensors": [
+            {
+                "id": "sensor:0"
+            }
+        ]
+    },
+    "add": {
+        "id": "room:1",
+        "sensors": [
+            {
+                "id": "sensor:2",
+                "temperature" : 50,
+                "description" : "some other sensor"
+            }
+        ]
     }
 }
 ```
