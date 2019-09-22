@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Hexastore.Errors;
 using Hexastore.Processor;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,8 @@ namespace Hexastore.Web.Controllers
         private readonly IStoreProcesor _storeProcessor;
         private readonly ILogger _logger;
 
-        public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor, ILogger<StoreController> logger) : base(receiver, processor)
+        public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor, StoreError storeError, ILogger<StoreController> logger)
+            : base(receiver, processor, storeError)
         {
             _storeProcessor = storeProcessor;
             _logger = logger;

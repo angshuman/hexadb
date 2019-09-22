@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -14,7 +15,7 @@ namespace Hexastore.Web.EventHubs
 
     public class EventReceiver : IPartitionReceiveHandler, IDisposable
     {
-        private readonly Dictionary<string, TaskCompletionSource<bool>> _completions = new Dictionary<string, TaskCompletionSource<bool>>();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _completions;
         private readonly ILogger<EventReceiver> _logger;
         private readonly Checkpoint _checkpoint;
         private readonly IStoreProcesor _storeProcessor;
@@ -24,6 +25,7 @@ namespace Hexastore.Web.EventHubs
 
         public EventReceiver(IStoreProcesor storeProcessor, Checkpoint checkpoint, ILogger<EventReceiver> logger)
         {
+            _completions = new ConcurrentDictionary<string, TaskCompletionSource<bool>>();
             _logger = logger;
             _checkpoint = checkpoint;
             _storeProcessor = storeProcessor;
@@ -101,7 +103,7 @@ namespace Hexastore.Web.EventHubs
                 tc?.SetException(exception);
             } finally {
                 if (tc != null) {
-                    _completions.Remove(opId);
+                    _completions.Remove(opId, out _);
                 }
             }
             return Task.CompletedTask;
@@ -115,7 +117,7 @@ namespace Hexastore.Web.EventHubs
 
         public void SetCompletion(string guid, TaskCompletionSource<bool> tc)
         {
-            _completions[guid] = tc;
+            _completions.TryAdd(guid, tc);
         }
 
         public void Dispose()

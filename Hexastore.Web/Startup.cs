@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using dotenv.net;
+using Hexastore.Errors;
 using Hexastore.Processor;
 using Hexastore.Resoner;
 using Hexastore.Rocks;
@@ -30,7 +31,9 @@ namespace Hexastore.Web
             services.AddSingleton<IReasoner, Reasoner>();
             services.AddSingleton<IStoreProcesor, StoreProcessor>();
             services.AddSingleton<IStoreProvider, SetProvider>();
+            services.AddSingleton<IStoreOperationFactory, StoreOperationFactory>();
 
+            services.AddSingleton<StoreError>();
             services.AddSingleton<EventReceiver>();
             services.AddSingleton<EventSender>();
             services.AddSingleton<Checkpoint>();
