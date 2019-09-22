@@ -194,17 +194,17 @@ Incoming queries can also be done with nesting level with `*` as path.
     "filter": {
         "type": {
             "op": "eq",
-            "value": "room"
+            "value": "sensor"
         }
     },
-    "outgoing": [
+    "incoming": [
         {
-            "path": "sensors#marker",
+            "path": "sensors",
             "target": {
                 "filter": {
-                    "green": {
-                        "op": "gt",
-                        "value": 9
+                    "name": {
+                        "op": "contains",
+                        "value": "Room"
                     }
                 }
             }
