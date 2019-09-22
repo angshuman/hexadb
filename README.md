@@ -122,7 +122,7 @@ This creates the following structure
 
 ### Find an object by relationship query
 
-We are trying to find rooms that have a sensor with marker of green gt 9. Now this can be though of as the following pattern search in the graph. Notice the path is a `#` separated list of paths. In this case it is `sensors#marker`
+We are trying to find rooms that have a sensor with `marker` of `green > 9`. This can be thought of as the following pattern search in the graph. To query multiple nesting levels with named paths, a `#` separated list of path names are used. In this case it is `sensors#marker`
 
 ![Graph](hexadb-readme-outgoing-path.svg)
 
@@ -212,6 +212,10 @@ Incoming queries can also be done with nesting level with `*` as path.
     ]
 }
 ```
+
+This is querying for the following pattern in the graph
+
+![Graph](hexadb-readme-incoming-path.svg)
 
 
 ### Update an object
