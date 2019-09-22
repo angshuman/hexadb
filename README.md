@@ -122,9 +122,9 @@ This creates the following structure
 
 ### Find an object by relationship query
 
-We are trying to find rooms that have a sensor with `marker` of `green > 9`. This can be thought of as the following pattern search in the graph. To query multiple nesting levels with named paths, a `#` separated list of path names are used. In this case it is `sensors#marker`
+We are trying to find rooms that have a sensor with a `marker` object that has a property of `green > 9`. This can be thought of as the following pattern search in the graph. To query multiple nesting levels with named paths, a `#` separated list of path names are used. In this case it is `sensors#marker`
 
-![Graph](hexadb-readme-outgoing-path.svg)
+![Outgoing Path](hexadb-readme-outgoing-path.svg)
 
 `POST /api/store/app01/query`
 
@@ -183,6 +183,10 @@ Here is the same query without specifying the explicit relationships. This is qu
 }
 ```
 
+Note that without specifying the path all the objects in the nesting level will be considered for a pattern match. For example this query may look like below
+
+![Outgoing Level](hexadb-readme-outgoing-level.svg)
+
 ### Find an object with incoming relationship
 
 Similar to the outgoing queries it is also possible to query objects that are pointed to by other objects. E.q. in a `parent->child` relatioship children can be found by `incoming` query from the parent.
@@ -215,7 +219,7 @@ Incoming queries can also be done with nesting level with `*` as path.
 
 This is querying for the following pattern in the graph
 
-![Graph](hexadb-readme-incoming-path.svg)
+![Incomng Path](hexadb-readme-incoming-path.svg)
 
 
 ### Update an object
