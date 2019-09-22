@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hexastore.Web.Errors;
+using Microsoft.Extensions.Logging;
 
 namespace Hexastore.Processor
 {
@@ -18,102 +19,137 @@ namespace Hexastore.Processor
         private readonly IStoreProvider _setProvider;
         private readonly IReasoner _reasoner;
         private readonly StoreError _storeErrors;
+        private readonly ILogger<StoreProcessor> _logger;
+        private readonly IStoreOperationFactory _storeOperationFactory;
 
-        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner)
+        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, IStoreOperationFactory storeOperationFactory, ILogger<StoreProcessor> logger)
         {
             _setProvider = setProvider;
             _reasoner = reasoner;
             _storeErrors = new StoreError();
+            _logger = logger;
+            _storeOperationFactory = storeOperationFactory;
         }
 
         public void Assert(string storeId, JToken input, bool strict)
         {
-            JArray value;
-            if (input is JObject) {
-                value = new JArray(input);
-            } else if (input is JArray) {
-                value = (JArray)input;
-            } else {
-                throw _storeErrors.InvalidType;
-            }
+            using (var op = _storeOperationFactory.Write(storeId)) {
+                try {
+                    JArray value;
+                    if (input is JObject) {
+                        value = new JArray(input);
+                    } else if (input is JArray) {
+                        value = (JArray)input;
+                    } else {
+                        throw _storeErrors.InvalidType;
+                    }
 
-            var (data, _, _) = GetSetGraphs(storeId);
-            foreach (var item in value) {
-                if (!(item is JObject)) {
-                    throw _storeErrors.InvalidItem;
-                }
-                var jobj = (JObject)item;
-                if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String) {
-                    throw _storeErrors.MustHaveId;
-                }
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    foreach (var item in value) {
+                        if (!(item is JObject)) {
+                            throw _storeErrors.InvalidItem;
+                        }
+                        var jobj = (JObject)item;
+                        if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String) {
+                            throw _storeErrors.MustHaveId;
+                        }
 
-                if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
-                    throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", "409.001");
-                    throw _storeErrors.MustHaveId;
-                }
+                        if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
+                            throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", _storeErrors.AlreadyContainsIdError);
+                        }
 
-                var graph = TripleConverter.FromJson((JObject)item);
-                data.Assert(graph);
+                        var graph = TripleConverter.FromJson((JObject)item);
+                        data.Assert(graph);
+                    }
+                } catch (Exception e) {
+                    _logger.LogError("Assert failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                    throw e;
+                }
             }
         }
 
         public void PatchJson(string storeId, JObject input)
         {
-            var patches = TripleConverter.FromJson(input);
-            var (data, _, _) = GetSetGraphs(storeId);
-            var retract = new List<Triple>();
-            foreach (var triple in patches) {
-                retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+            using (var op = _storeOperationFactory.Write(storeId)) {
+
+                try {
+                    var patches = TripleConverter.FromJson(input);
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    var retract = new List<Triple>();
+                    foreach (var triple in patches) {
+                        retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+                    }
+                    data.Retract(retract);
+                    var assert = patches.Where(x => !x.Object.IsNull).ToArray();
+                    data.Assert(assert);
+                } catch (Exception e) {
+                    _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                    throw e;
+                }
             }
-            data.Retract(retract);
-            var assert = patches.Where(x => !x.Object.IsNull).ToArray();
-            data.Assert(assert);
         }
 
         public void PatchTriple(string storeId, JObject input)
         {
-            var (data, _, _) = GetSetGraphs(storeId);
-            var remove = input["remove"];
-            if (remove != null && remove is JObject) {
-                var triples = TripleConverter.FromJson((JObject)remove);
-                data.Retract(triples);
-            }
-            var add = input["add"];
-            if (add != null && add is JObject) {
-                var triples = TripleConverter.FromJson((JObject)add);
-                data.Assert(triples);
+            using (var op = _storeOperationFactory.Write(storeId)) {
+
+                try {
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    var remove = input["remove"];
+                    if (remove != null && remove is JObject) {
+                        var triples = TripleConverter.FromJson((JObject)remove);
+                        data.Retract(triples);
+                    }
+                    var add = input["add"];
+                    if (add != null && add is JObject) {
+                        var triples = TripleConverter.FromJson((JObject)add);
+                        data.Assert(triples);
+                    }
+                } catch (Exception e) {
+                    _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                    throw e;
+                }
             }
         }
 
         public void AssertMeta(string storeId, JObject value)
         {
-            var graph = TripleConverter.FromJson(value);
-            var (data, infer, meta) = GetSetGraphs(storeId);
+            using (var op = _storeOperationFactory.Write(storeId)) {
 
-            _reasoner.Spin(data, infer, meta);
+                var graph = TripleConverter.FromJson(value);
+                var (data, infer, meta) = GetSetGraphs(storeId);
+
+                _reasoner.Spin(data, infer, meta);
+            }
         }
 
         public JObject GetSet(string storeId)
         {
-            var (data, _, _) = GetSetGraphs(storeId);
-            return TripleConverter.ToJson(data);
+            using (var op = _storeOperationFactory.Write(storeId)) {
+                var (data, _, _) = GetSetGraphs(storeId);
+                return TripleConverter.ToJson(data);
+            }
         }
 
         public (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId)
         {
+            // unsafe
             return GetSetGraphs(storeId);
         }
 
         public JObject GetSubject(string storeId, string subject, string[] expand, int level)
         {
-            var (data, _, _) = GetSetGraphs(storeId);
-            var triples = GraphOperator.Expand(data, subject, level, expand).ToList();
-            if (triples.Count() == 0) {
-                return null;
+            using (var op = _storeOperationFactory.Read(storeId)) {
+
+                var (data, _, _) = GetSetGraphs(storeId);
+                var triples = GraphOperator.Expand(data, subject, level, expand).ToList();
+                if (triples.Count() == 0) {
+                    return null;
+                }
+                var rspGraph = new MemoryGraph();
+                rspGraph.Assert(triples).ToList();
+                return TripleConverter.ToJson(subject, rspGraph);
             }
-            var rspGraph = new MemoryGraph();
-            rspGraph.Assert(triples).ToList();
-            return TripleConverter.ToJson(subject, rspGraph);
         }
 
         public JObject GetType(string storeId, string[] type, string[] expand, int level)
@@ -123,27 +159,34 @@ namespace Hexastore.Processor
 
         public JObject Query(string storeId, JObject query, string[] expand, int level)
         {
-            var (data, _, _) = GetSetGraphs(storeId);
-            ObjectQueryModel queryModel;
-            try {
-                queryModel = query.ToObject<ObjectQueryModel>();
-            } catch (Exception e) {
-                throw new StoreException(e.Message, "400.009");
-            }
+            using (var op = _storeOperationFactory.Write(storeId)) {
+                try {
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    ObjectQueryModel queryModel;
+                    try {
+                        queryModel = query.ToObject<ObjectQueryModel>();
+                    } catch (Exception e) {
+                        throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
+                    }
 
-            var result = new ObjectQueryExecutor().Query(queryModel, data);
-            var response = new
-            {
-                values = result.Values.Select(x =>
-                {
-                    var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
-                    var rspGraph = new MemoryGraph();
-                    rspGraph.Assert(expanded).ToList();
-                    return TripleConverter.ToJson(x.Subject, rspGraph);
-                }),
-                continuation = result.Continuation
-            };
-            return JObject.FromObject(response);
+                    var result = new ObjectQueryExecutor().Query(queryModel, data);
+                    var response = new
+                    {
+                        values = result.Values.Select(x =>
+                        {
+                            var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
+                            var rspGraph = new MemoryGraph();
+                            rspGraph.Assert(expanded).ToList();
+                            return TripleConverter.ToJson(x.Subject, rspGraph);
+                        }),
+                        continuation = result.Continuation
+                    };
+                    return JObject.FromObject(response);
+                } catch (Exception e) {
+                    _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                    throw e;
+                }
+            }
         }
 
         private (IStoreGraph, IStoreGraph, IStoreGraph) GetSetGraphs(string storeId)

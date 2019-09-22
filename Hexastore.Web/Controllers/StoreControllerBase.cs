@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Hexastore.Errors;
 using Hexastore.Web.Errors;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Http;
@@ -18,11 +19,13 @@ namespace Hexastore.Web.Controllers
     {
         private readonly EventReceiver _receiver;
         private readonly EventSender _eventProcessor;
+        private readonly StoreError _storeError;
 
-        public StoreControllerBase(EventReceiver receiver, EventSender eventProcessor)
+        public StoreControllerBase(EventReceiver receiver, EventSender eventProcessor, StoreError storeError)
         {
             _receiver = receiver;
             _eventProcessor = eventProcessor;
+            _storeError = storeError;
         }
 
         protected (string[], string[], int, bool) GetParams()
@@ -76,7 +79,7 @@ namespace Hexastore.Web.Controllers
             if (e is StoreException) {
                 return new ErrorActionResult(e as StoreException);
             } else {
-                return new ErrorActionResult(new StoreException(e.Message, "500.001"));
+                return new ErrorActionResult(new StoreException(e.Message, _storeError.Unhandled));
             }
         }
 

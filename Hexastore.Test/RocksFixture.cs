@@ -7,6 +7,9 @@ using Hexastore.Processor;
 using Hexastore.Resoner;
 using Hexastore.Rocks;
 using Hexastore.Store;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
+using Moq;
 
 namespace Hexastore.Test
 {
@@ -15,6 +18,7 @@ namespace Hexastore.Test
         public readonly RocksGraphProvider GraphProvider;
         public readonly IStoreProvider StoreProvider;
         public readonly IStoreProcesor StoreProcessor;
+        public readonly IStoreOperationFactory StoreOperationFactory;
         public readonly string SetId;
 
         public RocksFixture()
@@ -26,7 +30,8 @@ namespace Hexastore.Test
             Directory.CreateDirectory(testDirectory);
             GraphProvider = new RocksGraphProvider(testDirectory);
             StoreProvider = new SetProvider(GraphProvider);
-            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner());
+            StoreOperationFactory = new StoreOperationFactory();
+            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), StoreOperationFactory, Mock.Of<ILogger<StoreProcessor>>());
             SetId = "testset";
         }
 
