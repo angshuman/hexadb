@@ -68,23 +68,36 @@ namespace Hexastore.Processor
             }
         }
 
-        public void PatchJson(string storeId, JObject input)
+        public void PatchJson(string storeId, JToken token)
         {
+            JArray inputs;
             using (var op = _storeOperationFactory.Write(storeId)) {
+                if (token is JObject) {
+                    inputs = new JArray() { token };
+                } else if (token is JArray) {
+                    inputs = token as JArray;
+                } else {
+                    throw new InvalidOperationException("Invalid patch");
+                }
 
-                try {
-                    var patches = TripleConverter.FromJson(input);
-                    var (data, _, _) = GetSetGraphs(storeId);
-                    var retract = new List<Triple>();
-                    foreach (var triple in patches) {
-                        retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+                foreach (var input in inputs) {
+                    try {
+                        if (!(input is JObject)) {
+                            throw new InvalidOperationException("Invalid patch");
+                        }
+                        var patches = TripleConverter.FromJson((JObject)input);
+                        var (data, _, _) = GetSetGraphs(storeId);
+                        var retract = new List<Triple>();
+                        foreach (var triple in patches) {
+                            retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+                        }
+                        data.Retract(retract);
+                        var assert = patches.Where(x => !x.Object.IsNull).ToArray();
+                        data.Assert(assert);
+                    } catch (Exception e) {
+                        _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                        throw e;
                     }
-                    data.Retract(retract);
-                    var assert = patches.Where(x => !x.Object.IsNull).ToArray();
-                    data.Assert(assert);
-                } catch (Exception e) {
-                    _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                    throw e;
                 }
             }
         }

@@ -90,7 +90,7 @@ namespace Hexastore.Web.EventHubs
                         _storeProcessor.Assert(storeId, data, strict ?? false);
                         break;
                     case "PATCH_JSON":
-                        _storeProcessor.PatchJson(storeId, (JObject)data);
+                        _storeProcessor.PatchJson(storeId, data);
                         break;
                     case "PATCH_TRIPLE":
                         _storeProcessor.PatchTriple(storeId, (JObject)data);

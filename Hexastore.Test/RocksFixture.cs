@@ -28,7 +28,7 @@ namespace Hexastore.Test
                 Directory.Delete(testDirectory, true);
             }
             Directory.CreateDirectory(testDirectory);
-            GraphProvider = new RocksGraphProvider(testDirectory);
+            GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), testDirectory);
             StoreProvider = new SetProvider(GraphProvider);
             StoreOperationFactory = new StoreOperationFactory();
             StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), StoreOperationFactory, Mock.Of<ILogger<StoreProcessor>>());
