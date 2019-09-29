@@ -4,6 +4,6 @@ services:
     build: .
     ports:
       - "8000:80"
-    command: "bash -c 'mount'"
-    tmpfs:
-      - /var/data
+#    command: "bash -c 'mount'"
+#    tmpfs:
+#      - /var/data
