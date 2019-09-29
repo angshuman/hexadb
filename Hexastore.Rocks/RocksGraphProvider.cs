@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Hexastore.Graph;
 using Hexastore.Store;
+using Microsoft.Extensions.Logging;
 using RocksDbSharp;
 
 namespace Hexastore.Rocks
@@ -10,9 +11,11 @@ namespace Hexastore.Rocks
     public class RocksGraphProvider : IGraphProvider, IDisposable
     {
         private readonly RocksDb _db;
+        ILogger _logger;
 
-        public RocksGraphProvider(string path = null, DbOptions optionInput = null)
+        public RocksGraphProvider(ILogger<RocksGraphProvider> logger, string path = null, DbOptions optionInput = null)
         {
+            _logger = logger;
             string dataPath;
             if (path == null) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
@@ -24,8 +27,19 @@ namespace Hexastore.Rocks
                 dataPath = path;
             }
             Directory.CreateDirectory(dataPath);
-            var options = optionInput ?? new DbOptions().SetCreateIfMissing(true).SetAllowConcurrentMemtableWrite(true).SetMaxTotalWalSize((2 << 32) * 32);
+            var options = optionInput ?? new DbOptions()
+                .SetCreateIfMissing(true);
+            /*
+            .SetAllowConcurrentMemtableWrite(true)
+            .SetAllowMmapReads(true)
+            .SetAllowMmapWrites(true)
+            .SetUseFsync(0)
+            .IncreaseParallelism(6)
+            .SetCompression(Compression.No);
+            */
+
             _db = RocksDb.Open(options, dataPath);
+            _logger.LogInformation($"created rocksdb at {dataPath}");
         }
 
         public bool ContainsGraph(string id, GraphType type)
@@ -62,6 +76,7 @@ namespace Hexastore.Rocks
 
         public void Dispose()
         {
+            _logger.LogInformation("disposing rocksdb");
             _db.Dispose();
         }
 

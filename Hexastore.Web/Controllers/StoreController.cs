@@ -133,7 +133,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/json")]
-        public async Task<IActionResult> PatchJson(string storeId, [FromBody]JObject data)
+        public async Task<IActionResult> PatchJson(string storeId, [FromBody]JToken data)
         {
             try {
                 var e = new
