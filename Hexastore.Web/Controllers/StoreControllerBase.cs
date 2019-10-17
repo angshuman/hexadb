@@ -9,7 +9,7 @@ using Hexastore.Web.Errors;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Nest;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -20,12 +20,14 @@ namespace Hexastore.Web.Controllers
         private readonly EventReceiver _receiver;
         private readonly EventSender _eventProcessor;
         private readonly StoreError _storeError;
+        private readonly ILogger _logger;
 
-        public StoreControllerBase(EventReceiver receiver, EventSender eventProcessor, StoreError storeError)
+        public StoreControllerBase(EventReceiver receiver, EventSender eventProcessor, StoreError storeError, ILogger<StoreControllerBase> logger)
         {
             _receiver = receiver;
             _eventProcessor = eventProcessor;
             _storeError = storeError;
+            _logger = logger;
         }
 
         protected (string[], string[], int, bool) GetParams()
@@ -76,6 +78,7 @@ namespace Hexastore.Web.Controllers
 
         protected IActionResult HandleException(Exception e)
         {
+            _logger.LogError(LoggingEvents.ControllerError, e, e.Message);
             if (e is StoreException) {
                 return new ErrorActionResult(e as StoreException);
             } else {

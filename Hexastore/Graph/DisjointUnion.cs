@@ -173,5 +173,10 @@ namespace Hexastore.Graph
         {
             throw new NotImplementedException();
         }
+
+        public void BatchRetractAssert(IEnumerable<Triple> retract, IEnumerable<Triple> assert)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

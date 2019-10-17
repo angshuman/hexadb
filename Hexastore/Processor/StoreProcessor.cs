@@ -86,9 +86,8 @@ namespace Hexastore.Processor {
                         foreach (var triple in patches) {
                             retract.AddRange(data.SP(triple.Subject, triple.Predicate));
                         }
-                        data.Retract(retract);
                         var assert = patches.Where(x => !x.Object.IsNull).ToArray();
-                        data.Assert(assert);
+                        data.BatchRetractAssert(retract, assert);
                     } catch (Exception e) {
                         _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                         throw e;
