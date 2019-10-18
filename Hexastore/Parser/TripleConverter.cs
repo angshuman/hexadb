@@ -16,19 +16,28 @@ namespace Hexastore.Parser
             return graph;
         }
 
-        public static JObject ToJson(string id, IGraph graph)
+        public static JObject ToJson(string id, IGraph graph, HashSet<string> seen = null)
         {
+            if (seen == null) {
+                seen = new HashSet<string>();
+            }
+
             var po = graph.GetSubjectGroupings(id);
             var rsp = new JObject { [Constants.ID] = id };
             if (!po.Any()) {
                 return rsp;
             }
 
+            if (seen.Contains(id)) {
+                return rsp;
+            }
+
+            seen.Add(id);
             foreach (var p in po) {
                 var toList = new List<JToken>();
                 foreach (var o in p) {
                     if (o.IsID) {
-                        var obj = ToJson(o.ToValue(), graph);
+                        var obj = ToJson(o.ToValue(), graph, seen);
                         toList.Add(obj);
                     } else {
                         toList.Add(o.ToTypedJSON());

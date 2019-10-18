@@ -8,6 +8,7 @@ namespace Hexastore.Processor {
         void PatchJson(string storeId, JToken input);
         void PatchTriple(string storeId, JToken input);
         void AssertMeta(string storeId, JObject value);
+        void Delete(string storeId, JToken value);
         JObject GetSet(string storeId);
         (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId);
         JObject GetSubject(string storeId, string subject, string[] expand, int level);

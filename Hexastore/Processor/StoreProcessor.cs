@@ -12,15 +12,18 @@ using System.Linq;
 using Hexastore.Web.Errors;
 using Microsoft.Extensions.Logging;
 
-namespace Hexastore.Processor {
-    public class StoreProcessor : IStoreProcesor {
+namespace Hexastore.Processor
+{
+    public class StoreProcessor : IStoreProcesor
+    {
         private readonly IStoreProvider _setProvider;
         private readonly IReasoner _reasoner;
         private readonly StoreError _storeErrors;
         private readonly ILogger<StoreProcessor> _logger;
         private readonly IStoreOperationFactory _storeOperationFactory;
 
-        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, IStoreOperationFactory storeOperationFactory, ILogger<StoreProcessor> logger) {
+        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, IStoreOperationFactory storeOperationFactory, ILogger<StoreProcessor> logger)
+        {
             _setProvider = setProvider;
             _reasoner = reasoner;
             _storeErrors = new StoreError();
@@ -28,7 +31,8 @@ namespace Hexastore.Processor {
             _storeOperationFactory = storeOperationFactory;
         }
 
-        public void Assert(string storeId, JToken input, bool strict) {
+        public void Assert(string storeId, JToken input, bool strict)
+        {
             using (var op = _storeOperationFactory.Write(storeId)) {
                 try {
                     JArray value;
@@ -64,7 +68,8 @@ namespace Hexastore.Processor {
             }
         }
 
-        public void PatchJson(string storeId, JToken token) {
+        public void PatchJson(string storeId, JToken token)
+        {
             JArray inputs;
             using (var op = _storeOperationFactory.Write(storeId)) {
                 if (token is JObject) {
@@ -80,7 +85,7 @@ namespace Hexastore.Processor {
                         if (!(input is JObject)) {
                             throw new InvalidOperationException("Invalid patch");
                         }
-                        var patches = TripleConverter.FromJson((JObject)input);
+                        var patches = TripleConverter.FromJson(input as JObject);
                         var (data, _, _) = GetSetGraphs(storeId);
                         var retract = new List<Triple>();
                         foreach (var triple in patches) {
@@ -96,39 +101,56 @@ namespace Hexastore.Processor {
             }
         }
 
-        public void PatchTriple(string storeId, JToken token) {
-            JArray inputs;
+        public void PatchTriple(string storeId, JObject input)
+        {
             using (var op = _storeOperationFactory.Write(storeId)) {
-                if (token is JObject) {
-                    inputs = new JArray() { token };
-                } else if (token is JArray) {
-                    inputs = token as JArray;
-                } else {
-                    throw new InvalidOperationException("Invalid patch");
-                }
-
-                foreach (var input in inputs) {
-                    try {
-                        var (data, _, _) = GetSetGraphs(storeId);
-                        var remove = input["remove"];
-                        if (remove != null && remove is JObject) {
-                            var triples = TripleConverter.FromJson((JObject)remove);
-                            data.Retract(triples);
-                        }
-                        var add = input["add"];
-                        if (add != null && add is JObject) {
-                            var triples = TripleConverter.FromJson((JObject)add);
-                            data.Assert(triples);
-                        }
-                    } catch (Exception e) {
-                        _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                        throw e;
+                try {
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    var remove = input["remove"];
+                    if (remove != null && remove is JObject) {
+                        var triples = TripleConverter.FromJson((JObject)remove);
+                        data.Retract(triples);
                     }
+                    var add = input["add"];
+                    if (add != null && add is JObject) {
+                        var triples = TripleConverter.FromJson((JObject)add);
+                        data.Assert(triples);
+                    }
+                } catch (Exception e) {
+                    _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                    throw e;
                 }
             }
         }
 
-        public void AssertMeta(string storeId, JObject value) {
+        public void Delete(string storeId, JToken token)
+        {
+            using (var op = _storeOperationFactory.Write(storeId)) {
+                JArray inputs;
+                try {
+                    if (token is JObject) {
+                        inputs = new JArray() { token };
+                    } else if (token is JArray) {
+                        inputs = token as JArray;
+                    } else {
+                        throw new InvalidOperationException("Invalid delete");
+                    }
+                    foreach (var input in inputs) {
+                        if (!(input is JObject)) {
+                            throw new InvalidOperationException("Invalid delete");
+                        }
+                        var (data, _, _) = GetSetGraphs(storeId);
+                        var triples = TripleConverter.FromJson(input as JObject);
+                        data.Retract(triples);
+                    }
+                } catch (Exception e) {
+                    _logger.LogError("Delete failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                }
+            }
+        }
+
+        public void AssertMeta(string storeId, JObject value)
+        {
             using (var op = _storeOperationFactory.Write(storeId)) {
 
                 var graph = TripleConverter.FromJson(value);
@@ -138,19 +160,22 @@ namespace Hexastore.Processor {
             }
         }
 
-        public JObject GetSet(string storeId) {
+        public JObject GetSet(string storeId)
+        {
             using (var op = _storeOperationFactory.Write(storeId)) {
                 var (data, _, _) = GetSetGraphs(storeId);
                 return TripleConverter.ToJson(data);
             }
         }
 
-        public (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId) {
+        public (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId)
+        {
             // unsafe
             return GetSetGraphs(storeId);
         }
 
-        public JObject GetSubject(string storeId, string subject, string[] expand, int level) {
+        public JObject GetSubject(string storeId, string subject, string[] expand, int level)
+        {
             using (var op = _storeOperationFactory.Read(storeId)) {
 
                 var (data, _, _) = GetSetGraphs(storeId);
@@ -164,11 +189,13 @@ namespace Hexastore.Processor {
             }
         }
 
-        public JObject GetType(string storeId, string[] type, string[] expand, int level) {
+        public JObject GetType(string storeId, string[] type, string[] expand, int level)
+        {
             throw new NotImplementedException();
         }
 
-        public JObject Query(string storeId, JObject query, string[] expand, int level) {
+        public JObject Query(string storeId, JObject query, string[] expand, int level)
+        {
             using (var op = _storeOperationFactory.Write(storeId)) {
                 try {
                     var (data, _, _) = GetSetGraphs(storeId);
@@ -180,8 +207,10 @@ namespace Hexastore.Processor {
                     }
 
                     var result = new ObjectQueryExecutor().Query(queryModel, data);
-                    var response = new {
-                        values = result.Values.Select(x => {
+                    var response = new
+                    {
+                        values = result.Values.Select(x =>
+                        {
                             var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
                             var rspGraph = new MemoryGraph();
                             rspGraph.Assert(expanded).ToList();
@@ -197,7 +226,8 @@ namespace Hexastore.Processor {
             }
         }
 
-        private (IStoreGraph, IStoreGraph, IStoreGraph) GetSetGraphs(string storeId) {
+        private (IStoreGraph, IStoreGraph, IStoreGraph) GetSetGraphs(string storeId)
+        {
             var set = _setProvider.GetOrAdd(storeId);
             var data = set.GetGraph(GraphType.Data);
             var infer = set.GetGraph(GraphType.Infer);

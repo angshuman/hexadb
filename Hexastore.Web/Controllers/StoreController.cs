@@ -89,7 +89,7 @@ namespace Hexastore.Web.Controllers
                         if (batch.Count == 1000) {
                             var e = new
                             {
-                                operation = "POST",
+                                operation = EventType.POST,
                                 strict = true,
                                 data = batch
                             };
@@ -102,7 +102,7 @@ namespace Hexastore.Web.Controllers
                     if (batch.Count > 0) {
                         var e = new
                         {
-                            operation = "POST",
+                            operation = EventType.POST,
                             strict = true,
                             data = batch
                         };
@@ -126,7 +126,7 @@ namespace Hexastore.Web.Controllers
                 var (_, _, _, strict) = GetParams();
                 var e = new
                 {
-                    operation = "POST",
+                    operation = EventType.POST,
                     strict,
                     data
                 };
@@ -144,7 +144,7 @@ namespace Hexastore.Web.Controllers
             try {
                 var e = new
                 {
-                    operation = "PATCH_JSON",
+                    operation = EventType.PATCH_JSON,
                     data
                 };
                 await SendEvent(storeId, JObject.FromObject(e));
@@ -161,7 +161,24 @@ namespace Hexastore.Web.Controllers
             try {
                 var e = new
                 {
-                    operation = "PATCH_TRIPLE",
+                    operation = EventType.PATCH_TRIPLE,
+                    data
+                };
+                await SendEvent(storeId, JObject.FromObject(e));
+                return Accepted();
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+        [HttpDelete("{storeId}/subject")]
+        public async Task<IActionResult> Delete(string storeId, [FromBody]JObject data)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store {store}", storeId);
+            try {
+                var e = new
+                {
+                    operation = EventType.DELETE,
                     data
                 };
                 await SendEvent(storeId, JObject.FromObject(e));
