@@ -235,5 +235,10 @@ namespace Hexastore.Processor
 
             return (data, infer, meta);
         }
+
+        public void PatchTriple(string storeId, JToken input)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
