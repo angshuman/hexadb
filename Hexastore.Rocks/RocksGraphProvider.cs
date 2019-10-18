@@ -10,8 +10,10 @@ namespace Hexastore.Rocks
 {
     public class RocksGraphProvider : IGraphProvider, IDisposable
     {
+        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
         private readonly RocksDb _db;
         ILogger _logger;
+
 
         public RocksGraphProvider(ILogger<RocksGraphProvider> logger, string path = null, DbOptions optionInput = null)
         {
@@ -66,7 +68,7 @@ namespace Hexastore.Rocks
 
         public void WriteKey(string key, string value)
         {
-            _db.Put(key, value);
+            _db.Put(key, value, null, _writeOptions);
         }
 
         public string ReadKey(string key)

@@ -86,14 +86,17 @@ namespace Hexastore.Web.EventHubs
 
             try {
                 switch (operation) {
-                    case "POST":
+                    case EventType.POST:
                         _storeProcessor.Assert(storeId, data, strict ?? false);
                         break;
-                    case "PATCH_JSON":
+                    case EventType.PATCH_JSON:
                         _storeProcessor.PatchJson(storeId, data);
                         break;
-                    case "PATCH_TRIPLE":
+                    case EventType.PATCH_TRIPLE:
                         _storeProcessor.PatchTriple(storeId, (JObject)data);
+                        break;
+                    case EventType.DELETE:
+                        _storeProcessor.Delete(storeId, data);
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown operation {operation}");

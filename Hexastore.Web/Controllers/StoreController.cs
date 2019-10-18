@@ -19,7 +19,7 @@ namespace Hexastore.Web.Controllers
         private readonly ILogger _logger;
 
         public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor, StoreError storeError, ILogger<StoreController> logger)
-            : base(receiver, processor, storeError)
+            : base(receiver, processor, storeError, logger)
         {
             _storeProcessor = storeProcessor;
             _logger = logger;
@@ -28,6 +28,7 @@ namespace Hexastore.Web.Controllers
         [HttpGet("health")]
         public IActionResult Get()
         {
+            _logger.LogInformation(LoggingEvents.ControllerHealth, "health");
             var info = new
             {
                 RuntimeInformation.OSDescription,
@@ -43,6 +44,7 @@ namespace Hexastore.Web.Controllers
         [HttpGet("{storeId}/{subject}")]
         public IActionResult Get(string storeId, string subject)
         {
+            _logger.LogInformation(LoggingEvents.ControllerGetSubject, "GET: store {store} subject {subject}", storeId, subject);
             try {
                 var (_, expand, level, _) = GetParams();
                 var rsp = _storeProcessor.GetSubject(storeId, subject, expand, level);
@@ -55,6 +57,7 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}/query")]
         public IActionResult Query(string storeId, [FromBody]JObject query)
         {
+            _logger.LogInformation(LoggingEvents.ControllerQuery, "QUERY: store {store}", storeId);
             try {
                 var (_, expand, level, _) = GetParams();
                 var rsp = _storeProcessor.Query(storeId, query, expand, level);
@@ -67,6 +70,7 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}/ingest")]
         public async Task<IActionResult> Ingest(string storeId, [FromBody]JObject body)
         {
+            _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store {store}", storeId);
             string url = body["url"]?.ToString();
             if (string.IsNullOrEmpty(url)) {
                 return BadRequest();
@@ -85,7 +89,7 @@ namespace Hexastore.Web.Controllers
                         if (batch.Count == 1000) {
                             var e = new
                             {
-                                operation = "POST",
+                                operation = EventType.POST,
                                 strict = true,
                                 data = batch
                             };
@@ -98,7 +102,7 @@ namespace Hexastore.Web.Controllers
                     if (batch.Count > 0) {
                         var e = new
                         {
-                            operation = "POST",
+                            operation = EventType.POST,
                             strict = true,
                             data = batch
                         };
@@ -117,11 +121,12 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}")]
         public async Task<IActionResult> Post(string storeId, [FromBody]JToken data)
         {
+            _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store {store}", storeId);
             try {
                 var (_, _, _, strict) = GetParams();
                 var e = new
                 {
-                    operation = "POST",
+                    operation = EventType.POST,
                     strict,
                     data
                 };
@@ -135,10 +140,11 @@ namespace Hexastore.Web.Controllers
         [HttpPatch("{storeId}/json")]
         public async Task<IActionResult> PatchJson(string storeId, [FromBody]JToken data)
         {
+            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId}", storeId);
             try {
                 var e = new
                 {
-                    operation = "PATCH_JSON",
+                    operation = EventType.PATCH_JSON,
                     data
                 };
                 await SendEvent(storeId, JObject.FromObject(e));
@@ -151,10 +157,28 @@ namespace Hexastore.Web.Controllers
         [HttpPatch("{storeId}/triple")]
         public async Task<IActionResult> PatchTriple(string storeId, [FromBody]JObject data)
         {
+            _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store {store}", storeId);
             try {
                 var e = new
                 {
-                    operation = "PATCH_TRIPLE",
+                    operation = EventType.PATCH_TRIPLE,
+                    data
+                };
+                await SendEvent(storeId, JObject.FromObject(e));
+                return Accepted();
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+        [HttpDelete("{storeId}/subject")]
+        public async Task<IActionResult> Delete(string storeId, [FromBody]JObject data)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store {store}", storeId);
+            try {
+                var e = new
+                {
+                    operation = EventType.DELETE,
                     data
                 };
                 await SendEvent(storeId, JObject.FromObject(e));

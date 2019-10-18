@@ -353,6 +353,12 @@ namespace Hexastore.Graph
             throw new System.NotImplementedException();
         }
 
+        public void BatchRetractAssert(IEnumerable<Triple> retract, IEnumerable<Triple> assert)
+        {
+            Retract(retract);
+            Assert(assert);
+        }
+
         private class SubjectGrouping : IGrouping<string, IGrouping<string, TripleObject>>
         {
             private KeyValuePair<string, IDictionary<string, ISet<TripleObject>>> _kv;

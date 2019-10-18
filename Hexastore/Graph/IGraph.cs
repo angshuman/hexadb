@@ -43,6 +43,8 @@ namespace Hexastore.Graph
         /// </summary>
         bool Retract(string s, string p, TripleObject o);
 
+        void BatchRetractAssert(IEnumerable<Triple> retract, IEnumerable<Triple> assert);
+
         /// <summary>
         /// Subtracts a whole graph from the graph: Retract all the triples in that graph from this graph
         /// </summary>

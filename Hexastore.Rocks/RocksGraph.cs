@@ -14,7 +14,7 @@ namespace Hexastore.Rocks
     {
         private readonly string _name;
         private readonly RocksDb _db;
-        //private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(true);
+        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
 
         public RocksGraph(string name, RocksDb db)
         {
@@ -39,7 +39,7 @@ namespace Hexastore.Rocks
                 batch.Put(sKey, serializedTriple);
                 batch.Put(pKey, serializedTriple);
                 batch.Put(oKey, serializedTriple);
-                _db.Write(batch);
+                _db.Write(batch, _writeOptions);
             }
             return true;
         }
@@ -59,13 +59,35 @@ namespace Hexastore.Rocks
                     batch.Put(pKey, serializedTriple);
                     batch.Put(oKey, serializedTriple);
                 }
-                _db.Write(batch);
+                _db.Write(batch, _writeOptions);
             }
         }
 
         public bool Assert(string s, string p, TripleObject o)
         {
             return Assert(new Triple(s, p, o));
+        }
+
+        public void BatchRetractAssert(IEnumerable<Triple> retract, IEnumerable<Triple> assert)
+        {
+            using (var batch = new WriteBatch()) {
+                foreach (var t in retract) {
+                    var (sh, ph, ih, oh) = TripleHash(t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = GetKeys(sh, ph, ih, oh);
+                    batch.Delete(sKey);
+                    batch.Delete(pKey);
+                    batch.Delete(oKey);
+                }
+                foreach (var t in assert) {
+                    var (sh, ph, ih, oh) = TripleHash(t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = GetKeys(sh, ph, ih, oh);
+                    var serializedTriple = t.ToBytes();
+                    batch.Put(sKey, serializedTriple);
+                    batch.Put(pKey, serializedTriple);
+                    batch.Put(oKey, serializedTriple);
+                }
+                _db.Write(batch, _writeOptions);
+            }
         }
 
         public object Clone()
@@ -362,7 +384,7 @@ namespace Hexastore.Rocks
                     batch.Delete(pKey);
                     batch.Delete(oKey);
                 }
-                _db.Write(batch);
+                _db.Write(batch, _writeOptions);
             }
         }
 
@@ -377,7 +399,7 @@ namespace Hexastore.Rocks
                 batch.Delete(sKey);
                 batch.Delete(pKey);
                 batch.Delete(oKey);
-                _db.Write(batch);
+                _db.Write(batch, _writeOptions);
             }
             return true;
         }
