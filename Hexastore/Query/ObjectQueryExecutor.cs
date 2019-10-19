@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using Hexastore.Errors;
 using Hexastore.Graph;
 using Hexastore.Web.Errors;
@@ -63,22 +64,49 @@ namespace Hexastore.Query
                 }
             }
 
-            var responseTriples = rsp.Take(query.PageSize).ToArray();
-            var cont = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
-            var queryResponse = new ObjectQueryResponse
-            {
-                Values = responseTriples,
-                Continuation = cont != null
-                ? new Continuation
+            if (query.Aggregates == null || query.Aggregates.Length == 0) {
+                var responseTriples = rsp.Take(query.PageSize).ToArray();
+                var cont = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
+                var queryResponse = new ObjectQueryResponse
                 {
-                    S = cont.Subject,
-                    P = cont.Predicate,
-                    O = cont.Object.ToTypedJSON(),
-                    IsId = cont.Object.IsID
+                    Values = responseTriples,
+                    Continuation = cont != null
+                    ? new Continuation
+                    {
+                        S = cont.Subject,
+                        P = cont.Predicate,
+                        O = cont.Object.ToTypedJSON(),
+                        IsId = cont.Object.IsID
+                    }
+                    : null
+                };
+                return queryResponse;
+            }
+
+            // process aggregates
+            return ApplyAggregates(rsp, query.Aggregates);
+        }
+
+        private ObjectQueryResponse ApplyAggregates(IEnumerable<Triple> rsp, AggregateQuery[] aggregates)
+        {
+            var responses = new List<object>();
+            foreach (var aggregate in aggregates) {
+                switch (aggregate.Type) {
+                    case AggregateType.Count:
+                        var count = rsp.Count();
+                        responses.Add(count);
+                        break;
+                    default:
+                        throw new InvalidOperationException("unknown aggregate");
                 }
-                : null
+            }
+            return new ObjectQueryResponse
+            {
+                Aggregates = new object[]
+                {
+                    responses
+                }
             };
-            return queryResponse;
         }
 
         private IEnumerable<Triple> ApplyConstraint(IEnumerable<Triple> rsp, IGraph graph, string key, QueryUnit value)

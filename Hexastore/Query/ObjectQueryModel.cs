@@ -21,12 +21,26 @@ namespace Hexastore.Query
         public LinkQuery[] HasSubject { get; set; }
         [JsonProperty("outgoing")]
         public LinkQuery[] HasObject { get; set; }
+        [JsonProperty("aggregates")]
+        public AggregateQuery[] Aggregates { get; set; }
+    }
+
+    public class AggregateQuery
+    {
+        [JsonProperty("type")]
+        public AggregateType Type { get; set; }
+    }
+
+    public enum AggregateType
+    {
+        Count
     }
 
     public class ObjectQueryResponse
     {
         public IEnumerable<Triple> Values { get; set; }
         public Continuation Continuation { get; set; }
+        public object[] Aggregates { get; set; }
     }
 
     public class Continuation

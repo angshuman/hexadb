@@ -207,16 +207,17 @@ namespace Hexastore.Processor
                     }
 
                     var result = new ObjectQueryExecutor().Query(queryModel, data);
-                    var response = new
+                    dynamic response = new
                     {
-                        values = result.Values.Select(x =>
+                        values = result.Values?.Select(x =>
                         {
                             var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
                             var rspGraph = new MemoryGraph();
                             rspGraph.Assert(expanded).ToList();
                             return TripleConverter.ToJson(x.Subject, rspGraph);
                         }),
-                        continuation = result.Continuation
+                        continuation = result.Continuation,
+                        aggregates = result.Aggregates
                     };
                     return JObject.FromObject(response);
                 } catch (Exception e) {
@@ -234,11 +235,6 @@ namespace Hexastore.Processor
             var meta = set.GetGraph(GraphType.Meta);
 
             return (data, infer, meta);
-        }
-
-        public void PatchTriple(string storeId, JToken input)
-        {
-            throw new NotImplementedException();
         }
     }
 }
