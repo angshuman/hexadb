@@ -266,6 +266,19 @@ Hexadb also supports patching at the triple level. The patches are performed wit
 }
 ```
 
+### Replication
 
+The data store can be replicated to multiple instances using event hubs. The store supports the following environment variables to use for replication.
+
+```
+HEXASTORE_EVENTHUB_KEY
+HEXASTORE_EVENTHUB_PARTITION_COUNT
+HEXASTORE_EVENTHUB_NAME
+```
+
+The HEXASTORE_EVENTHUB_KEY must contain `EntityPath`. `HEXASTORE_EVENTHUB_PARTITION_COUNT` denotes the number of partitions to send replication data to.
+`HEXASTORE_EVENTHUB_NAME` identifies the event hub as a name. If this is changed the event hub configuration will be treated as a new configuration with 
+no checkpoints. The checkpoints are used to remember the offset to which the database contains information. On restart the writes are read from the already 
+saved offset in the database.
 
 
