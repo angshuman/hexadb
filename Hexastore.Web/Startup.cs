@@ -37,6 +37,7 @@ namespace Hexastore.Web
             services.AddSingleton<EventReceiver>();
             services.AddSingleton<EventSender>();
             services.AddSingleton<Checkpoint>();
+            services.AddSingleton<StoreConfig>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

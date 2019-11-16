@@ -26,7 +26,8 @@
         public static readonly string SubClassOf = "subClassOf";
         public static readonly string SubPropertyOf = "subPropertyOf";
 
-        public static readonly string EventHubCheckpoint = "ehc";
+        public static readonly string EventHubCheckpoint = "#ehc";
+        public static readonly string ConfigKeysPrefix = "#config";
 
         public static readonly int DefaultPageSize = 25;
     }

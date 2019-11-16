@@ -11,6 +11,12 @@ namespace Hexastore.Web.Errors
         {
             ErrorCode = errorCode;
         }
+
+        public StoreException(string message, string errorCode, Exception ex) : base(message, ex)
+        {
+            ErrorCode = errorCode;
+        }
+
         public string ErrorCode { get; set; }
     }
 }

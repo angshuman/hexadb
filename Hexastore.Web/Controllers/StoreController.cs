@@ -7,6 +7,7 @@ using Hexastore.Processor;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Web.Controllers
@@ -87,26 +88,26 @@ namespace Hexastore.Web.Controllers
                         batch.Add(item);
 
                         if (batch.Count == 1000) {
-                            var e = new
+                            var e = new StoreEvent
                             {
-                                operation = EventType.POST,
-                                strict = true,
-                                data = batch
+                                Operation = EventType.POST,
+                                Strict = true,
+                                Data = batch.ToString(Formatting.None)
                             };
-                            await SendEvent(storeId, JObject.FromObject(e));
+                            await SendEvent(storeId, e);
                             _logger.LogInformation("Batch ingestion", batch.Count);
                             batch = new JArray();
                         }
                     }
 
                     if (batch.Count > 0) {
-                        var e = new
+                        var e = new StoreEvent
                         {
-                            operation = EventType.POST,
-                            strict = true,
-                            data = batch
+                            Operation = EventType.POST,
+                            Strict = true,
+                            Data = batch.ToString(Formatting.None)
                         };
-                        await SendEvent(storeId, JObject.FromObject(e));
+                        await SendEvent(storeId, e);
                         _logger.LogInformation("Batch ingestion", batch.Count);
 
                     }
@@ -124,13 +125,13 @@ namespace Hexastore.Web.Controllers
             _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store {store}", storeId);
             try {
                 var (_, _, _, strict) = GetParams();
-                var e = new
+                var e = new StoreEvent
                 {
-                    operation = EventType.POST,
-                    strict,
-                    data
+                    Operation = EventType.POST,
+                    Strict = strict,
+                    Data = data.ToString(Formatting.None)
                 };
-                await SendEvent(storeId, JObject.FromObject(e));
+                await SendEvent(storeId, e);
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -142,12 +143,12 @@ namespace Hexastore.Web.Controllers
         {
             _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId}", storeId);
             try {
-                var e = new
+                var e = new StoreEvent
                 {
-                    operation = EventType.PATCH_JSON,
-                    data
+                    Operation = EventType.PATCH_JSON,
+                    Data = data.ToString(Formatting.None)
                 };
-                await SendEvent(storeId, JObject.FromObject(e));
+                await SendEvent(storeId, e);
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -159,12 +160,12 @@ namespace Hexastore.Web.Controllers
         {
             _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store {store}", storeId);
             try {
-                var e = new
+                var e = new StoreEvent
                 {
-                    operation = EventType.PATCH_TRIPLE,
-                    data
+                    Operation = EventType.PATCH_TRIPLE,
+                    Data = data.ToString(Formatting.None)
                 };
-                await SendEvent(storeId, JObject.FromObject(e));
+                await SendEvent(storeId, e);
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -176,12 +177,12 @@ namespace Hexastore.Web.Controllers
         {
             _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store {store}", storeId);
             try {
-                var e = new
+                var e = new StoreEvent
                 {
-                    operation = EventType.DELETE,
-                    data
+                    Operation = EventType.DELETE,
+                    Data = data.ToString(Formatting.None)
                 };
-                await SendEvent(storeId, JObject.FromObject(e));
+                await SendEvent(storeId, e);
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);

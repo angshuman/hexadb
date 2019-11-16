@@ -64,11 +64,11 @@ namespace Hexastore.Web.Controllers
             return (skip, take);
         }
 
-        protected Task SendEvent(string storeId, JObject payload)
+        protected Task SendEvent(string storeId, StoreEvent payload)
         {
             var guid = Guid.NewGuid().ToString();
-            payload["operationId"] = guid;
-            payload["storeId"] = storeId;
+            payload.OperationId = guid;
+            payload.StoreId = storeId;
 
             var tc = new TaskCompletionSource<bool>();
             _receiver.SetCompletion(guid, tc);

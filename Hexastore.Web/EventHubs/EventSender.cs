@@ -11,9 +11,8 @@ namespace Hexastore.Web.EventHubs
     public class EventSender : IDisposable
     {
         private readonly EventReceiver _storeReceiver;
-        private Checkpoint _checkpoint;
-        private readonly string _eventHubConnectionString;
-        private readonly string _eventHubPartition;
+        private readonly Checkpoint _checkpoint;
+        private readonly StoreConfig _storeConfig;
         private readonly EventHubClient _eventHubClient;
         private readonly bool _active;
 
@@ -30,34 +29,31 @@ namespace Hexastore.Web.EventHubs
             }
         }
 
-        public EventSender(EventReceiver receiver, Checkpoint checkpoint)
+        public EventSender(EventReceiver receiver, Checkpoint checkpoint, StoreConfig storeConfig)
         {
             _storeReceiver = receiver;
             _checkpoint = checkpoint;
-            _eventHubConnectionString = Environment.GetEnvironmentVariable("HEXASTORE_EVENTHUB_KEY");
-            _eventHubPartition = Environment.GetEnvironmentVariable("HEXASTORE_EVENTHUB_PARTITION");
-            if (!string.IsNullOrEmpty(_eventHubConnectionString)) {
-                _active = true;
-                _eventHubClient = EventHubClient.CreateFromConnectionString(_eventHubConnectionString);
-                var cp = _checkpoint.Get(Constants.EventHubCheckpoint);
-                _receiver = _eventHubClient.CreateReceiver(PartitionReceiver.DefaultConsumerGroupName, _eventHubPartition, EventPosition.FromOffset(cp ?? "-1"));
-                _receiver.SetReceiveHandler(_storeReceiver);
+            _storeConfig = storeConfig;
+            if (_storeConfig.ReplicationIsActive) {
+                _eventHubClient = EventHubClient.CreateFromConnectionString(_storeConfig.EventHubConnectionString);
+                _ = this.StartListeners();
                 _ = _storeReceiver.LogCount();
             }
         }
 
-        public async Task SendMessage(JObject obj)
+        public async Task SendMessage(StoreEvent storeEvent)
         {
             if (!_active) {
                 // pass through
-                await _storeReceiver.ProcessEventsAsync(obj);
+                await _storeReceiver.ProcessEventsAsync(storeEvent);
                 return;
             }
 
             try {
-                var content = obj.ToString();
+                storeEvent.PartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                var content = JsonConvert.SerializeObject(storeEvent, Formatting.None);
                 var bytes = Encoding.UTF8.GetBytes(content);
-                await _eventHubClient.SendAsync(new EventData(bytes), _eventHubPartition);
+                await _eventHubClient.SendAsync(new EventData(bytes), storeEvent.PartitionId.ToString());
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
@@ -67,6 +63,16 @@ namespace Hexastore.Web.EventHubs
         {
             if (_eventHubClient != null) {
                 _eventHubClient.Close();
+            }
+        }
+
+        private async Task StartListeners()
+        {
+            var ehRuntime = await _eventHubClient.GetRuntimeInformationAsync();
+            foreach (var partitionId in ehRuntime.PartitionIds) {
+                var cp = _checkpoint.Get($"{Constants.EventHubCheckpoint}.{_storeConfig.EventHubName}.{partitionId}");
+                _receiver = _eventHubClient.CreateReceiver(PartitionReceiver.DefaultConsumerGroupName, partitionId, EventPosition.FromOffset(cp ?? "-1"));
+                _receiver.SetReceiveHandler(_storeReceiver);
             }
         }
     }

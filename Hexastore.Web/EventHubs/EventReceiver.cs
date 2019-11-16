@@ -19,16 +19,18 @@ namespace Hexastore.Web.EventHubs
         private readonly ILogger<EventReceiver> _logger;
         private readonly Checkpoint _checkpoint;
         private readonly IStoreProcesor _storeProcessor;
+        private readonly StoreConfig _storeConfig;
         private bool _running = true;
 
         private int _eventCount;
 
-        public EventReceiver(IStoreProcesor storeProcessor, Checkpoint checkpoint, ILogger<EventReceiver> logger)
+        public EventReceiver(IStoreProcesor storeProcessor, Checkpoint checkpoint, StoreConfig storeConfig, ILogger<EventReceiver> logger)
         {
             _completions = new ConcurrentDictionary<string, TaskCompletionSource<bool>>();
             _logger = logger;
             _checkpoint = checkpoint;
             _storeProcessor = storeProcessor;
+            _storeConfig = storeConfig;
 
             _eventCount = 0;
         }
@@ -63,37 +65,48 @@ namespace Hexastore.Web.EventHubs
             foreach (var e in events) {
                 _eventCount++;
                 var content = Encoding.UTF8.GetString(e.Body);
-                var o = JObject.Parse(content);
-                await ProcessEventsAsync(o);
-                _checkpoint.Write(Constants.EventHubCheckpoint, e.SystemProperties["x-opt-offset"].ToString());
+                var partitionId = e.SystemProperties["x-opt-partition-key"].ToString();
+                var offset = e.SystemProperties["x-opt-offset"].ToString();
+                StoreEvent storeEvent;
+                try {
+                    storeEvent = StoreEvent.FromString(content);
+                } catch (Exception exception) {
+                    _logger.LogError(exception, "Unable to process event {offset} {partition} {}", offset, partitionId);
+                    continue;
+                }
+
+                await ProcessEventsAsync(storeEvent);
+                _checkpoint.Write($"{Constants.EventHubCheckpoint}.{_storeConfig.EventHubName}.{partitionId}", offset);
             }
 
             return;
         }
 
-        public Task ProcessEventsAsync(JObject o)
+        public Task ProcessEventsAsync(StoreEvent storeEvent)
         {
-            var storeId = o["storeId"]?.Value<string>();
+            var storeId = storeEvent.StoreId;
 
-            var operation = o["operation"]?.Value<string>();
-            var opId = o["operationId"]?.Value<string>();
-            var strict = o["strict"]?.Value<bool>();
-            var data = o["data"];
+            string operation = storeEvent.Operation;
+            var opId = storeEvent.OperationId;
+            var strict = storeEvent.Strict;
+
             TaskCompletionSource<bool> tc = null;
             if (opId != null) {
                 _completions.TryGetValue(opId, out tc);
             }
 
             try {
+                var data = JToken.Parse(storeEvent.Data);
                 switch (operation) {
                     case EventType.POST:
-                        _storeProcessor.Assert(storeId, data, strict ?? false);
+                        _storeProcessor.Assert(storeId, data, strict);
                         break;
                     case EventType.PATCH_JSON:
                         _storeProcessor.PatchJson(storeId, data);
                         break;
                     case EventType.PATCH_TRIPLE:
-                        _storeProcessor.PatchTriple(storeId, (JObject)data);
+                        var patch = JObject.Parse(storeEvent.Data);
+                        _storeProcessor.PatchTriple(storeId, patch);
                         break;
                     case EventType.DELETE:
                         _storeProcessor.Delete(storeId, data);
