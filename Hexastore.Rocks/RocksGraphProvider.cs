@@ -96,5 +96,4 @@ namespace Hexastore.Rocks
             return $"{(int)type}-{id}"; ;
         }
     }
-
 }

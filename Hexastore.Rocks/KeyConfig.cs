@@ -19,7 +19,7 @@ namespace Hexastore.Rocks
 
             var outputIndex = 0;
             foreach (var i in inputs) {
-                Array.Copy(i, 0, output, outputIndex, i.Length);
+                Buffer.BlockCopy(i, 0, output, outputIndex, i.Length);
                 outputIndex += i.Length;
             }
             return output;
@@ -61,7 +61,7 @@ namespace Hexastore.Rocks
                     continue;
                 }
                 var item = new byte[i - lastIndex - 1];
-                Array.Copy(input, lastIndex + 1, item, 0, item.Length);
+                Buffer.BlockCopy(input, lastIndex + 1, item, 0, item.Length);
                 list.Add(item);
                 lastIndex = i;
             }

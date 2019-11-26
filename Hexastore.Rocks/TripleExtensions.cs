@@ -26,9 +26,9 @@ namespace Hexastore.Rocks
             var index = 0;
             foreach (var item in spio) {
                 var lenBytes = BitConverter.GetBytes(item.Length);
-                Array.Copy(lenBytes, 0, destination, index, 4);
+                Buffer.BlockCopy(lenBytes, 0, destination, index, 4);
                 index += 4;
-                Array.Copy(item, 0, destination, index, item.Length);
+                Buffer.BlockCopy(item, 0, destination, index, item.Length);
                 index += item.Length;
             }
 
@@ -59,11 +59,11 @@ namespace Hexastore.Rocks
         private static byte[] ReadNext(byte[] source, int index)
         {
             var lenBytes = new byte[4];
-            Array.Copy(source, index, lenBytes, 0, 4);
+            Buffer.BlockCopy(source, index, lenBytes, 0, 4);
             var len = BitConverter.ToInt32(lenBytes, 0);
 
             var destination = new byte[len];
-            Array.Copy(source, index + 4, destination, 0, len);
+            Buffer.BlockCopy(source, index + 4, destination, 0, len);
             return destination;
         }
 
