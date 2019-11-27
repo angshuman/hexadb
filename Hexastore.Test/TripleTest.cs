@@ -26,7 +26,7 @@ namespace Hexastore.Test
 
             var exist1 = _set.Exists("a", "b", "c");
             Assert.AreEqual(exist1, true);
-            var exist2 = _set.Exists("a", "b", new TripleObject("c"));
+            var exist2 = _set.Exists("a", "b", TripleObject.FromId("c"));
             Assert.AreEqual(exist2, true);
             var exist3 = _set.Exists("a", "b", "d");
             Assert.AreEqual(exist3, false);

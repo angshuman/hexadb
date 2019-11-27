@@ -53,6 +53,9 @@ namespace Hexastore.Query
         public JValue O { get; set; }
         [JsonProperty("i")]
         public bool IsId { get; set; }
+        [JsonProperty("c")]
+        public int Index { get; set; }
+
 
         public static implicit operator Continuation(Triple t)
         {

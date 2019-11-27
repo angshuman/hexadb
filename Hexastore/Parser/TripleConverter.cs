@@ -12,7 +12,7 @@ namespace Hexastore.Parser
         {
             var graph = new List<Triple>();
 
-            AddObject(graph, null, null, obj);
+            AddObject(graph, null, null, obj, null);
             return graph;
         }
 
@@ -52,12 +52,6 @@ namespace Hexastore.Parser
             return rsp;
         }
 
-        public static Patch ToPatch(IGraph graph, string id, JObject body)
-        {
-            var triplePatch = PatchObject(graph, id, body);
-            return triplePatch;
-        }
-
         public static JObject ToJson(IGraph graph)
         {
             var rsp = new JArray();
@@ -67,12 +61,7 @@ namespace Hexastore.Parser
             return new JObject { ["@graph"] = rsp };
         }
 
-        private static Patch PatchObject(IGraph graph, string id, JObject body)
-        {
-            return null;
-        }
-
-        private static void AddObject(IList<Triple> graph, string sourceId, string p, JObject obj)
+        private static void AddObject(IList<Triple> graph, string sourceId, string p, JObject obj, int? index)
         {
             if (!obj.ContainsKey(Constants.ID)) {
                 throw new InvalidOperationException("Cannot find id");
@@ -80,7 +69,7 @@ namespace Hexastore.Parser
 
             var currentId = (string)obj[Constants.ID];
             if (sourceId != null) {
-                graph.Add(new Triple(sourceId, p, new TripleObject(currentId)));
+                graph.Add(new Triple(sourceId, p, new TripleObject(currentId, index)));
             }
 
             foreach (var item in obj) {
@@ -103,7 +92,7 @@ namespace Hexastore.Parser
                             jobj[Constants.ID] = $"{s}{Constants.LinkDelimeter}{p}{Constants.LinkDelimeter}{index}";
                         }
                     }
-                    AddObject(graph, s, p, jobj);
+                    AddObject(graph, s, p, jobj, null);
                     break;
                 case JTokenType.Array:
                     var count = 0;
@@ -112,7 +101,7 @@ namespace Hexastore.Parser
                     }
                     break;
                 default:
-                    graph.Add(new Triple(s, p, new TripleObject((JValue)token)));
+                    graph.Add(new Triple(s, p, new TripleObject((JValue)token, false, index)));
                     break;
             }
         }

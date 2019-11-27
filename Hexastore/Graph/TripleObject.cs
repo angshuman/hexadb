@@ -15,23 +15,25 @@ namespace Hexastore.Graph
         private string _value;
         private readonly JTokenType _tokenType;
 
-        public TripleObject(string id)
-            : this(id, true, JTokenType.String)
+        public TripleObject(string id, int? arrayIndex)
+            : this(id, true, JTokenType.String, arrayIndex)
         {
         }
 
-        public TripleObject(JValue data)
+        public TripleObject(JValue data, bool isId, int? arrayIndex)
         {
-            IsID = false;
+            IsID = isId;
             _tokenType = data.Type;
             _value = data.Value<string>();
+            Index = arrayIndex == null ? -1 : (int)arrayIndex;
         }
 
-        public TripleObject(string value, bool isID, JTokenType tokenType)
+        public TripleObject(string value, bool isID, JTokenType tokenType, int? arrayIndex)
         {
             _value = value;
             IsID = isID;
             _tokenType = tokenType;
+            Index = arrayIndex == null ? -1 : (int)arrayIndex;
         }
 
         [JsonIgnore]
@@ -46,7 +48,8 @@ namespace Hexastore.Graph
             }
         }
 
-        public bool IsID { get; set; }
+        public bool IsID { get; }
+        public int Index { get; }
 
         [JsonIgnore]
         public bool IsNull
@@ -62,7 +65,7 @@ namespace Hexastore.Graph
         /// </summary>
         public static implicit operator TripleObject(JToken jToken)
         {
-            return new TripleObject((JValue)jToken);
+            return new TripleObject((JValue)jToken, false, null);
         }
 
         /// <summary>
@@ -70,12 +73,17 @@ namespace Hexastore.Graph
         /// </summary>
         public static implicit operator TripleObject(string id)
         {
-            return new TripleObject(id, true, JTokenType.String);
+            return new TripleObject(id, true, JTokenType.String, null);
+        }
+
+        public static TripleObject FromId(string s)
+        {
+            return new TripleObject(s, null);
         }
 
         public static TripleObject FromData(string s)
         {
-            return new TripleObject(s, false, JTokenType.String);
+            return new TripleObject(s, false, JTokenType.String, null);
         }
 
         /// <summary>
@@ -83,7 +91,7 @@ namespace Hexastore.Graph
         /// </summary>
         public static TripleObject FromData(long n)
         {
-            return new TripleObject($"{n}", false, JTokenType.Float);
+            return new TripleObject($"{n}", false, JTokenType.Float, null);
         }
 
         /// <summary>
@@ -91,7 +99,7 @@ namespace Hexastore.Graph
         /// </summary>
         public static TripleObject FromData(double n)
         {
-            return new TripleObject($"{n}", false, JTokenType.Float);
+            return new TripleObject($"{n}", false, JTokenType.Float, null);
         }
 
         /// <summary>
@@ -99,7 +107,7 @@ namespace Hexastore.Graph
         /// </summary>
         public static TripleObject FromData(bool f)
         {
-            return new TripleObject(f ? "true" : "false", false, JTokenType.Boolean);
+            return new TripleObject(f ? "true" : "false", false, JTokenType.Boolean, null);
         }
 
         /// <summary>
@@ -107,7 +115,7 @@ namespace Hexastore.Graph
         /// </summary>
         public static TripleObject FromRaw(string json)
         {
-            return new TripleObject(json, false, JTokenType.String);
+            return new TripleObject(json, false, JTokenType.String, null);
         }
 
         public static string Stringify(JValue jValue)

@@ -44,7 +44,7 @@ namespace Hexastore.Query
                 ? new Triple(
                     query.Continuation.S,
                     query.Continuation.P,
-                    new TripleObject(query.Continuation.O) { IsID = query.Continuation.IsId })
+                    new TripleObject(query.Continuation.O, query.Continuation.IsId, query.Continuation.Index))
                 : null;
 
             var rsp = CreateConstraint(graph, firstFilter.Key, firstFilter.Value, cTriple);
@@ -76,7 +76,8 @@ namespace Hexastore.Query
                         S = cont.Subject,
                         P = cont.Predicate,
                         O = cont.Object.ToTypedJSON(),
-                        IsId = cont.Object.IsID
+                        IsId = cont.Object.IsID,
+                        Index = cont.Object.Index
                     }
                     : null
                 };

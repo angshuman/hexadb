@@ -18,10 +18,11 @@ namespace Hexastore.Rocks
             var oTypeBytes = BitConverter.GetBytes((ushort)oTyped.Type);
             var oBytes = GetBytes(o.ToValue());
             var idBytes = o.IsID ? new byte[] { 1 } : new byte[] { 0 };
+            var indexBytes = BitConverter.GetBytes(o.Index);
 
-            var totalLength = (4 * 5) + sBytes.Length + pBytes.Length + oBytes.Length + idBytes.Length + oTypeBytes.Length;
+            var totalLength = (4 * 6) + sBytes.Length + pBytes.Length + oBytes.Length + idBytes.Length + oTypeBytes.Length + indexBytes.Length;
             var destination = new byte[totalLength];
-            var spio = new[] { sBytes, pBytes, idBytes, oTypeBytes, oBytes };
+            var spio = new[] { sBytes, pBytes, indexBytes, idBytes, oTypeBytes, oBytes };
 
             var index = 0;
             foreach (var item in spio) {
@@ -42,6 +43,8 @@ namespace Hexastore.Rocks
             index += 4 + sBytes.Length;
             var pBytes = ReadNext(spoBytes, index);
             index += 4 + pBytes.Length;
+            var arrayIndexBytes = ReadNext(spoBytes, index);
+            index += 4 + arrayIndexBytes.Length;
             var idBytes = ReadNext(spoBytes, index);
             index += 4 + idBytes.Length;
             var oTypeBytes = ReadNext(spoBytes, index);
@@ -50,10 +53,11 @@ namespace Hexastore.Rocks
 
             var s = GetString(sBytes);
             var p = GetString(pBytes);
+            var arrayIndex = BitConverter.ToInt32(arrayIndexBytes);
             var ovalue = GetString(oBytes);
             var id = idBytes[0] == 1 ? true : false;
             var type = (JTokenType)BitConverter.ToUInt16(oTypeBytes);
-            return new Triple(s, p, new TripleObject(ovalue, id, type));
+            return new Triple(s, p, new TripleObject(ovalue, id, type, arrayIndex));
         }
 
         private static byte[] ReadNext(byte[] source, int index)
