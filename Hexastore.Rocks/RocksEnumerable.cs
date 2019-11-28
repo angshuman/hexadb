@@ -71,6 +71,7 @@ namespace Hexastore.Rocks
         {
             if (_currentKey == null) {
                 _currentKey = _start;
+                // todo: check
                 _iterator = _db.NewIterator();
                 _iterator.Seek(_start);
                 var firstKey = _iterator.Key();

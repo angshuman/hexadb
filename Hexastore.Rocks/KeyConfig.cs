@@ -40,7 +40,7 @@ namespace Hexastore.Rocks
                 var z = KeyConfig.ByteZero;
                 _sKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteS, z, S, z, P, z, Index, z, IsId, z, O);
                 _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, Index, z, S);
-                _oKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P, Index, z);
+                _oKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P, z, Index);
             }
 
             return (_sKey, _pKey, _oKey);
