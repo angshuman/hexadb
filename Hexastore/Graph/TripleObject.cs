@@ -173,6 +173,7 @@ namespace Hexastore.Graph
 
         public override bool Equals(object obj)
         {
+            // Intentionally ignore Index. 
             if (_value == null && ((TripleObject)obj)._value == null) {
                 return true;
             }
