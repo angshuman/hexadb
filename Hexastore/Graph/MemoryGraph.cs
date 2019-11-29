@@ -10,17 +10,16 @@ namespace Hexastore.Graph
     /// </summary>
     public class MemoryGraph : IStoreGraph
     {
-        private readonly IDictionary<string, IDictionary<string, IList<TripleObject>>> _spo;
-        private readonly IDictionary<string, IDictionary<TripleObject, IList<string>>> _pos;
-        private readonly IDictionary<TripleObject, IDictionary<string, IList<string>>> _osp;
+        private readonly IDictionary<string, IDictionary<string, ISet<TripleObject>>> _spo;
+        private readonly IDictionary<string, IDictionary<TripleObject, ISet<string>>> _pos;
+        private readonly IDictionary<TripleObject, IDictionary<string, ISet<string>>> _osp;
 
         public MemoryGraph(string name = null)
         {
-            // todo: cheap and dirty for supporting IList
             Name = name ?? string.Empty;
-            _spo = new Dictionary<string, IDictionary<string, IList<TripleObject>>>();
-            _pos = new Dictionary<string, IDictionary<TripleObject, IList<string>>>();
-            _osp = new Dictionary<TripleObject, IDictionary<string, IList<string>>>();
+            _spo = new Dictionary<string, IDictionary<string, ISet<TripleObject>>>();
+            _pos = new Dictionary<string, IDictionary<TripleObject, ISet<string>>>();
+            _osp = new Dictionary<TripleObject, IDictionary<string, ISet<string>>>();
         }
 
         public string Name
@@ -111,7 +110,7 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> O(TripleObject to)
         {
-            IDictionary<string, IList<string>> sp;
+            IDictionary<string, ISet<string>> sp;
             if (_osp.TryGetValue(to, out sp)) {
                 foreach (var s in sp) {
                     foreach (var p in s.Value) {
@@ -123,9 +122,9 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> OS(TripleObject to, string ts)
         {
-            IDictionary<string, IList<string>> sp;
+            IDictionary<string, ISet<string>> sp;
             if (_osp.TryGetValue(to, out sp)) {
-                IList<string> p;
+                ISet<string> p;
                 if (sp.TryGetValue(ts, out p)) {
                     foreach (var tp in p) {
                         yield return new Triple(ts, tp, to);
@@ -136,7 +135,7 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> P(string tp)
         {
-            IDictionary<TripleObject, IList<string>> os;
+            IDictionary<TripleObject, ISet<string>> os;
             if (_pos.TryGetValue(tp, out os)) {
                 foreach (var o in os) {
                     foreach (var s in o.Value) {
@@ -148,9 +147,9 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> PO(string tp, TripleObject to)
         {
-            IDictionary<TripleObject, IList<string>> os;
+            IDictionary<TripleObject, ISet<string>> os;
             if (_pos.TryGetValue(tp, out os)) {
-                IList<string> s;
+                ISet<string> s;
                 if (os.TryGetValue(to, out s)) {
                     foreach (var ts in s) {
                         yield return new Triple(ts, tp, to);
@@ -161,7 +160,7 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> S(string ts)
         {
-            IDictionary<string, IList<TripleObject>> po;
+            IDictionary<string, ISet<TripleObject>> po;
             if (_spo.TryGetValue(ts, out po)) {
                 foreach (var o in po) {
                     foreach (var qo in o.Value) {
@@ -173,9 +172,9 @@ namespace Hexastore.Graph
 
         public IEnumerable<Triple> SP(string ts, string tp)
         {
-            IDictionary<string, IList<TripleObject>> po;
+            IDictionary<string, ISet<TripleObject>> po;
             if (_spo.TryGetValue(ts, out po)) {
-                IList<TripleObject> o;
+                ISet<TripleObject> o;
                 if (po.TryGetValue(tp, out o)) {
                     foreach (var qo in o) {
                         yield return new Triple(ts, tp, qo);
@@ -202,9 +201,9 @@ namespace Hexastore.Graph
 
         public bool Exists(string ts, string tp, TripleObject to)
         {
-            IDictionary<string, IList<TripleObject>> po;
+            IDictionary<string, ISet<TripleObject>> po;
             if (_spo.TryGetValue(ts, out po)) {
-                IList<TripleObject> o;
+                ISet<TripleObject> o;
                 if (po.TryGetValue(tp, out o)) {
                     return o.Contains(to);
                 }
@@ -264,32 +263,27 @@ namespace Hexastore.Graph
             return true;
         }
 
-        private static bool Assert<TX, TY, TZ>(IDictionary<TX, IDictionary<TY, IList<TZ>>> xyz, TX tx, TY ty, TZ tz)
+        private static bool Assert<TX, TY, TZ>(IDictionary<TX, IDictionary<TY, ISet<TZ>>> xyz, TX tx, TY ty, TZ tz)
         {
-            IDictionary<TY, IList<TZ>> yz;
+            IDictionary<TY, ISet<TZ>> yz;
             if (!xyz.TryGetValue(tx, out yz)) {
-                yz = new Dictionary<TY, IList<TZ>>();
+                yz = new Dictionary<TY, ISet<TZ>>();
                 xyz[tx] = yz;
             }
-            IList<TZ> z;
+            ISet<TZ> z;
             if (!yz.TryGetValue(ty, out z)) {
-                z = new List<TZ>();
+                z = new HashSet<TZ>();
                 yz[ty] = z;
             }
-            // todo: dirty
-            //if (z.Contains(tz)) {
-            //    return false;
-            //}
-            z.Add(tz);
-            return true;
+            return z.Add(tz);
         }
 
-        private static bool Retract<TX, TY, TZ>(IDictionary<TX, IDictionary<TY, IList<TZ>>> xyz, TX tx, TY ty, TZ tz)
+        private static bool Retract<TX, TY, TZ>(IDictionary<TX, IDictionary<TY, ISet<TZ>>> xyz, TX tx, TY ty, TZ tz)
         {
             bool f = false;
-            IDictionary<TY, IList<TZ>> yz;
+            IDictionary<TY, ISet<TZ>> yz;
             if (xyz.TryGetValue(tx, out yz)) {
-                IList<TZ> z;
+                ISet<TZ> z;
                 if (yz.TryGetValue(ty, out z)) {
                     f = z.Remove(tz);
                     if (z.Count == 0) {
@@ -312,7 +306,7 @@ namespace Hexastore.Graph
 
         public IEnumerable<IGrouping<string, TripleObject>> GetSubjectGroupings(string s)
         {
-            IDictionary<string, IList<TripleObject>> po;
+            IDictionary<string, ISet<TripleObject>> po;
             if (_spo.TryGetValue(s, out po)) {
                 foreach (var p in po) {
                     yield return new PredicateGrouping(p);
@@ -367,9 +361,9 @@ namespace Hexastore.Graph
 
         private class SubjectGrouping : IGrouping<string, IGrouping<string, TripleObject>>
         {
-            private KeyValuePair<string, IDictionary<string, IList<TripleObject>>> _kv;
+            private KeyValuePair<string, IDictionary<string, ISet<TripleObject>>> _kv;
 
-            public SubjectGrouping(KeyValuePair<string, IDictionary<string, IList<TripleObject>>> kv)
+            public SubjectGrouping(KeyValuePair<string, IDictionary<string, ISet<TripleObject>>> kv)
             {
                 _kv = kv;
             }
@@ -394,9 +388,9 @@ namespace Hexastore.Graph
 
         private class PredicateGrouping : IGrouping<string, TripleObject>
         {
-            private KeyValuePair<string, IList<TripleObject>> _kv;
+            private KeyValuePair<string, ISet<TripleObject>> _kv;
 
-            public PredicateGrouping(KeyValuePair<string, IList<TripleObject>> kv)
+            public PredicateGrouping(KeyValuePair<string, ISet<TripleObject>> kv)
             {
                 _kv = kv;
             }

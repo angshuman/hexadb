@@ -25,7 +25,7 @@ namespace Hexastore.Test
             {
                 id = "100",
                 name = "name100",
-                age = 20,
+                age = (int)20,
                 contains = new
                 {
                     name = "name200",
@@ -33,7 +33,7 @@ namespace Hexastore.Test
                         new
                         {
                             name = "name300",
-                            age = 30,
+                            age = (int)30,
                         },
                         new
                         {
@@ -46,18 +46,17 @@ namespace Hexastore.Test
             var json = JObject.FromObject(item);
             var graph = TripleConverter.FromJson(json);
 
-            var expected = new MemoryGraph();
+            var expected = new List<Triple>();
             expected.Assert("100", "name", TripleObject.FromData("name100"));
             expected.Assert("100", "age", TripleObject.FromData(20));
             expected.Assert("100", "contains", "100#contains");
-            expected.Assert("100", "name", TripleObject.FromData("name100"));
             expected.Assert("100#contains", "name", TripleObject.FromData("name200"));
             expected.Assert("100#contains", "values", "100#contains#values#0");
-            expected.Assert("100#contains", "values", "100#contains#values#1");
             expected.Assert("100#contains#values#0", "name", TripleObject.FromData("name300"));
             expected.Assert("100#contains#values#0", "age", TripleObject.FromData(30));
+            expected.Assert("100#contains", "values", "100#contains#values#1");
             expected.Assert("100#contains#values#1", "name", TripleObject.FromData("name400"));
-            CollectionAssert.AreEquivalent(expected.GetTriples().ToArray(), graph.ToArray());
+            CollectionAssert.AreEqual(expected, graph.ToArray(), new UnorderedTripleComparer());
         }
 
         [TestMethod]
