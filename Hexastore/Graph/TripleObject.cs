@@ -5,33 +5,32 @@ using System.IO;
 
 namespace Hexastore.Graph
 {
-    /// <summary>
-    /// Part of the implementation of the flattened graph
-    /// (TODO consider not using JSON internally - this shouldn't be too hard now as the usage is now decoupled from the internals)
-    /// </summary>
     public class TripleObject
     {
-        // TODO: switch to object
-        private string _value;
-        private readonly JTokenType _tokenType;
+        public string Value { get; }
+        public JTokenType TokenType { get; }
+        public bool IsID { get; }
+        public int Index { get; }
 
-        public TripleObject(string id)
-            : this(id, true, JTokenType.String)
+        public TripleObject(string id, int? arrayIndex)
+            : this(id, true, JTokenType.String, arrayIndex)
         {
         }
 
-        public TripleObject(JValue data)
+        public TripleObject(JValue data, bool isId, int? arrayIndex)
         {
-            IsID = false;
-            _tokenType = data.Type;
-            _value = data.Value<string>();
+            IsID = isId;
+            TokenType = data.Type;
+            Value = data.Value<string>();
+            Index = arrayIndex == null ? -1 : (int)arrayIndex;
         }
 
-        public TripleObject(string value, bool isID, JTokenType tokenType)
+        public TripleObject(string value, bool isID, JTokenType tokenType, int? arrayIndex)
         {
-            _value = value;
+            Value = value;
             IsID = isID;
-            _tokenType = tokenType;
+            TokenType = tokenType;
+            Index = arrayIndex == null ? -1 : (int)arrayIndex;
         }
 
         [JsonIgnore]
@@ -40,74 +39,63 @@ namespace Hexastore.Graph
             get
             {
                 if (IsID) {
-                    return _value;
+                    return Value;
                 }
                 throw new InvalidOperationException("object is not an Id");
             }
         }
-
-        public bool IsID { get; set; }
-
         [JsonIgnore]
         public bool IsNull
         {
             get
             {
-                return _value == null;
+                return Value == null;
             }
         }
 
-        /// <summary>
-        /// actual property data is stored as JSON
-        /// </summary>
         public static implicit operator TripleObject(JToken jToken)
         {
-            return new TripleObject((JValue)jToken);
+            return new TripleObject((JValue)jToken, false, null);
         }
 
-        /// <summary>
-        /// all reference types are held as strings (not Uri because they often differ only in fragment)
-        /// </summary>
         public static implicit operator TripleObject(string id)
         {
-            return new TripleObject(id, true, JTokenType.String);
+            return new TripleObject(id, true, JTokenType.String, null);
+        }
+
+        public static TripleObject FromId(string s)
+        {
+            return new TripleObject(s, null);
         }
 
         public static TripleObject FromData(string s)
         {
-            return new TripleObject(s, false, JTokenType.String);
+            return new TripleObject(s, false, JTokenType.String, null);
         }
 
-        /// <summary>
-        /// create avoiding JValue
-        /// </summary>
+        public static TripleObject FromData(int n)
+        {
+            return new TripleObject($"{n}", false, JTokenType.Integer, null);
+        }
+
         public static TripleObject FromData(long n)
         {
-            return new TripleObject($"{n}", false, JTokenType.Float);
+            return new TripleObject($"{n}", false, JTokenType.Float, null);
         }
 
-        /// <summary>
-        /// create avoiding JValue
-        /// </summary>
         public static TripleObject FromData(double n)
         {
-            return new TripleObject($"{n}", false, JTokenType.Float);
+            return new TripleObject($"{n}", false, JTokenType.Float, null);
         }
 
-        /// <summary>
-        /// create avoiding JValue
-        /// </summary>
         public static TripleObject FromData(bool f)
         {
-            return new TripleObject(f ? "true" : "false", false, JTokenType.Boolean);
+            return new TripleObject(f ? "true" : "false", false, JTokenType.Boolean, null);
         }
 
-        /// <summary>
-        /// create avoiding JValue
-        /// </summary>
         public static TripleObject FromRaw(string json)
         {
-            return new TripleObject(json, false, JTokenType.String);
+            return new TripleObject(json, false, JTokenType.String, null);
         }
 
         public static string Stringify(JValue jValue)
@@ -124,34 +112,34 @@ namespace Hexastore.Graph
         public override string ToString()
         {
             if (IsID) {
-                return $"<{_value}>";
+                return $"<{Value}>";
             } else {
-                return _value;
+                return Value;
             }
         }
 
         public string ToValue()
         {
-            return _value;
+            return Value;
         }
 
         public JValue ToTypedJSON()
         {
-            switch (_tokenType) {
+            switch (TokenType) {
                 case JTokenType.String:
                 case JTokenType.Date:
                 case JTokenType.TimeSpan:
                 case JTokenType.Guid:
                 case JTokenType.Uri:
-                    return new JValue(_value);
+                    return new JValue(Value);
                 case JTokenType.Integer:
-                    return new JValue(int.Parse(_value));
+                    return new JValue(int.Parse(Value));
                 case JTokenType.Boolean:
-                    return new JValue(bool.Parse(_value));
+                    return new JValue(bool.Parse(Value));
                 case JTokenType.Float:
-                    return new JValue(float.Parse(_value));
+                    return new JValue(float.Parse(Value));
                 default:
-                    throw new InvalidOperationException($"{_tokenType} not support as object");
+                    throw new InvalidOperationException($"{TokenType} not support as object");
             }
         }
 
@@ -160,20 +148,31 @@ namespace Hexastore.Graph
             if (IsID) {
                 throw new InvalidOperationException("object is an id but should be data");
             }
-            return JValue.Parse(_value).ToString();
+            return JValue.Parse(Value).ToString();
         }
 
         public override bool Equals(object obj)
         {
-            if (_value == null && ((TripleObject)obj)._value == null) {
+            var t = obj as TripleObject;
+            if (t == null) {
+                return false;
+            }
+
+            if (Value == null && t.Value == null) {
                 return true;
             }
-            return ((TripleObject)obj).IsID == IsID && ((TripleObject)obj)._value.Equals(_value);
+
+            //if (t.Index == -1 || Index == -1) {
+            //    // unordered comparison
+            //    return t.IsID == IsID && t.Value == Value && t.TokenType == TokenType;
+            //}
+
+            return t.IsID == IsID && t.Value == Value && t.Index == Index && t.TokenType == TokenType;
         }
 
         public override int GetHashCode()
         {
-            return (IsID ? "1" : "0" + _value).GetHashCode();
+            return (IsID ? "1" : "0" + Value).GetHashCode();
         }
     }
 }

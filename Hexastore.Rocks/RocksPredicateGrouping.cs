@@ -49,7 +49,7 @@ namespace Hexastore.Rocks
 
         private byte[] Hash(string input)
         {
-            return KeyConfig.Hash(input);
+            return KeyConfig.GetBytes(input);
         }
     }
 }
