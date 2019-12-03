@@ -53,11 +53,9 @@ namespace Hexastore.Processor
                         if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String) {
                             throw _storeErrors.MustHaveId;
                         }
-
                         if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
                             throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", _storeErrors.AlreadyContainsIdError);
                         }
-
                         var graph = TripleConverter.FromJson((JObject)item);
                         data.Assert(graph);
                     }
@@ -183,9 +181,9 @@ namespace Hexastore.Processor
                 if (triples.Count() == 0) {
                     return null;
                 }
-                var rspGraph = new MemoryGraph();
-                rspGraph.Assert(triples).ToList();
-                return TripleConverter.ToJson(subject, rspGraph);
+                var rspGraph = new SPOIndex();
+                rspGraph.Assert(triples);
+                return rspGraph.ToJson(subject);
             }
         }
 

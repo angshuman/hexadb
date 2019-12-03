@@ -92,7 +92,7 @@ namespace Hexastore.Parser
                             jobj[Constants.ID] = $"{s}{Constants.LinkDelimeter}{p}{Constants.LinkDelimeter}{index}";
                         }
                     }
-                    AddObject(graph, s, p, jobj, null);
+                    AddObject(graph, s, p, jobj, index);
                     break;
                 case JTokenType.Array:
                     var count = 0;
