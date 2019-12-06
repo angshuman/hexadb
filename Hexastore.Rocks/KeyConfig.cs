@@ -102,6 +102,12 @@ namespace Hexastore.Rocks
             return KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteP, z, pBytes);
         }
 
+        public static byte[] GetNamePPredicate(string name)
+        {
+            var nameBytes = KeyConfig.GetBytes(name);
+            return KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteP);
+        }
+
         public static byte[] GetNamePKeyPredicateObject(string name, string predicate, TripleObject o)
         {
             var nameBytes = KeyConfig.GetBytes(name);

@@ -16,5 +16,6 @@ namespace Hexastore.Web
         public const int ControllerQuery = 106;
         public const int ControllerDelete = 107;
         public const int ControllerError = 108;
+        public const int ControllerPredicates = 109;
     }
 }

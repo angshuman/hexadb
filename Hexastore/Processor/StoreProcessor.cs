@@ -189,6 +189,18 @@ namespace Hexastore.Processor
             }
         }
 
+        public JObject GetPredicates(string storeId)
+        {
+            using (var op = _storeOperationFactory.Read(storeId))
+            {
+                var (data, _, _) = GetSetGraphs(storeId);
+                var predicates = data.P().ToList();
+                return new JObject {
+                    new JProperty("values", new JArray(predicates))
+                };
+            }
+        }
+
         public JObject GetType(string storeId, string[] type, string[] expand, int level)
         {
             throw new NotImplementedException();

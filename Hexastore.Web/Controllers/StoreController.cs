@@ -68,6 +68,20 @@ namespace Hexastore.Web.Controllers
             }
         }
 
+        [HttpGet("{storeId}/predicates")]
+        public IActionResult Predicates(string storeId)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerPredicates, $"PREDICATES: store {storeId}");
+            try
+            {
+                var rsp = _storeProcessor.GetPredicates(storeId);
+                return Ok(rsp);
+            } catch (Exception e)
+            {
+                return HandleException(e);
+            }
+        }
+
         [HttpPost("{storeId}/ingest")]
         public async Task<IActionResult> Ingest(string storeId, [FromBody]JObject body)
         {

@@ -61,6 +61,11 @@ namespace Hexastore.Graph
         IEnumerable<Triple> P(string p);
 
         /// <summary>
+        /// P returns all the predicates
+        /// </summary>
+        IEnumerable<string> P();
+
+        /// <summary>
         /// O returns all the triples with this object
         /// </summary>
         IEnumerable<Triple> O(TripleObject o);

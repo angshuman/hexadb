@@ -291,6 +291,22 @@ namespace Hexastore.Rocks
             return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
         }
 
+        public IEnumerable<string> P()
+        {
+            var pPrefix = KeySegments.GetNamePPredicate(_name);
+            var startP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteZero);
+            var endP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteOne);
+            var predicates = new RocksEnumerable(_db, startP, endP, (it) =>
+            {
+                var key = it.Key();
+                var splits = KeyConfig.Split(key);
+                var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteOne);
+                return it.Seek(nextKey);
+            }).Select(x => x.Predicate);
+
+            return predicates;
+        }
+
         public IEnumerable<Triple> P(string p, Triple c)
         {
             if (c == null) {

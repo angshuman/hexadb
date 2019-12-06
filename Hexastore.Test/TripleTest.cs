@@ -144,6 +144,26 @@ namespace Hexastore.Test
         }
 
         [TestMethod]
+        public void Get_P_Returns()
+        {
+            _set.Assert("s1", "p1", "o1");
+            _set.Assert("s1", "p1", TripleObject.FromData("o1"));
+            _set.Assert("s2", "p1", "c1");
+
+            _set.Assert("s2", "p3", "c2");
+            _set.Assert("s2", "p3", "c3");
+            _set.Assert("s2", "p3", "c3"); // duplicate assert
+
+            _set.Assert("s3", "p5", "c1");
+
+            var p = _set.P().ToArray();
+            Assert.AreEqual(p.Count(), 3);
+            CollectionAssert.Contains(p, "p1");
+            CollectionAssert.Contains(p, "p3");
+            CollectionAssert.Contains(p, "p5");
+        }
+
+        [TestMethod]
         public void GetBy_PO_Returns()
         {
             _set.Assert("s1", "p1", "o1");
