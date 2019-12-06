@@ -81,6 +81,11 @@ namespace Hexastore.Graph
             return _read.P(p).Concat(_write.P(p));
         }
 
+        public IEnumerable<string> P()
+        {
+            return _read.P().Concat(_write.P());
+        }
+
         public IEnumerable<Triple> PO(string p, TripleObject o)
         {
             return _read.PO(p, o).Concat(_write.PO(p, o));

@@ -144,6 +144,10 @@ namespace Hexastore.Graph
                 }
             }
         }
+        public IEnumerable<string> P()
+        {
+            return _pos.Keys;
+        }
 
         public IEnumerable<Triple> PO(string tp, TripleObject to)
         {
