@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using dotenv.net;
 using Hexastore.Errors;
 using Hexastore.Processor;
@@ -29,7 +30,13 @@ namespace Hexastore.Web
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAnyOrigin",
-                    builder => builder.AllowAnyOrigin());
+                    builder => builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .WithExposedHeaders("content-disposition")
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600)));
             });
 
             services.AddMvc();
