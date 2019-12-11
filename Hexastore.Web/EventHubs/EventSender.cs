@@ -59,6 +59,39 @@ namespace Hexastore.Web.EventHubs
             }
         }
 
+        public async Task SendMessages(IEnumerable<StoreEvent> storeEvents)
+        {
+            if (!_active)
+            {
+                // pass through
+                foreach(var storeEvent in storeEvents)
+                {
+                    await _storeReceiver.ProcessEventsAsync(storeEvent);
+                }
+                return;
+            }
+
+            try
+            {
+                var partitionKey = string.Empty;
+                var eventDatas = new List<EventData>();
+                foreach (var storeEvent in storeEvents)
+                {
+                    storeEvent.PartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                    if(partitionKey == string.Empty) partitionKey = storeEvent.PartitionId.ToString();
+                    var content = JsonConvert.SerializeObject(storeEvent, Formatting.None);
+                    var bytes = Encoding.UTF8.GetBytes(content);
+                    eventDatas.Add(new EventData(bytes));
+                }
+             
+                await _eventHubClient.SendAsync(eventDatas, partitionKey);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
         public void Dispose()
         {
             if (_eventHubClient != null) {

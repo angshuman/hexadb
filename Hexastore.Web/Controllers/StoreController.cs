@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -176,15 +177,13 @@ namespace Hexastore.Web.Controllers
             _logger.LogInformation(LoggingEvents.ControllerPatchJson, "BATCH PATCH JSON: store {storeId}", storeId);
             try
             {
-                foreach(var patch in dataPatches)
+                var payloads = dataPatches.Select(patch => new StoreEvent
                 {
-                    var e = new StoreEvent
-                    {
-                        Operation = EventType.PATCH_JSON,
-                        Data = patch.ToString(Formatting.None)
-                    };
-                    await SendEvent(storeId, e);
-                }
+                    Operation = EventType.PATCH_JSON,
+                    Data = patch.ToString(Formatting.None)
+                });
+
+                await SendEvents(storeId, payloads);
                 return Accepted();
             }
             catch (Exception e)
