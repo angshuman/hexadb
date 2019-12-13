@@ -53,10 +53,11 @@ namespace Hexastore.Rocks
 
             var s = GetString(sBytes);
             var p = GetString(pBytes);
-            var arrayIndex = BitConverter.ToInt32(arrayIndexBytes);
+
+            var arrayIndex = BitConverter.ToInt32(arrayIndexBytes, 0);
             var ovalue = GetString(oBytes);
             var id = idBytes[0] == 1 ? true : false;
-            var type = (JTokenType)BitConverter.ToUInt16(oTypeBytes);
+            var type = (JTokenType)BitConverter.ToUInt16(oTypeBytes, 0);
             return new Triple(s, p, new TripleObject(ovalue, id, type, arrayIndex));
         }
 
