@@ -8,7 +8,7 @@ namespace Hexastore.Rocks
     {
         public RocksTest()
         {
-            var dataPath = Path.GetRelativePath(".", "rockstest");
+            var dataPath = Path.Combine(Path.GetFullPath("."), "rockstest");
             if (Directory.Exists(dataPath)) {
                 Directory.Delete(dataPath, true);
             }
