@@ -87,7 +87,7 @@ namespace Hexastore.Test
             expected.Add(new Triple("100#contains", "name", TripleObject.FromData("name200")));
             expected.Add(new Triple("100#contains", "values", "100#contains#values#0"));
             expected.Add(new Triple("100#contains#values#0", "age", TripleObject.FromData(null)));
-            CollectionAssert.AreEquivalent(expected.ToArray(), graph.ToArray());
+            CollectionAssert.AreEqual(expected, graph.ToArray(), new UnorderedTripleComparer());
         }
     }
 }

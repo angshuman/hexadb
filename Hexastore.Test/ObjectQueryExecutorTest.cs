@@ -85,7 +85,7 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple = new Triple("300", "age", TripleObject.FromData(30));
+            var testTriple = new Triple("300", "age", (new JValue(30), -1));
 
             CollectionAssert.Contains(values, testTriple);
             Assert.AreEqual(1, values.Count());
@@ -124,7 +124,7 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple = new Triple("500", "name", TripleObject.FromData("name500"));
+            var testTriple = new Triple("500", "name", (new JValue("name500"), -1));
             CollectionAssert.Contains(values, testTriple);
             Assert.AreEqual(1, rsp.Values.Count());
             Assert.AreEqual(null, rsp.Continuation);
@@ -147,7 +147,7 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple = new Triple("500", "name", TripleObject.FromData("name500"));
+            var testTriple = new Triple("500", "name", (new JValue("name500"), -1));
             CollectionAssert.Contains(values, testTriple);
             Assert.AreEqual(1, rsp.Values.Count());
             Assert.AreEqual(null, rsp.Continuation);
@@ -169,8 +169,8 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple1 = new Triple("300", "age", TripleObject.FromData(30));
-            var testTriple2 = new Triple("700", "age", TripleObject.FromData(30));
+            var testTriple1 = new Triple("300", "age", (new JValue(30), -1));
+            var testTriple2 = new Triple("700", "age", (new JValue(30), -1));
             CollectionAssert.Contains(values, testTriple1);
             CollectionAssert.Contains(values, testTriple2);
             Assert.AreEqual(2, rsp.Values.Count());
@@ -194,8 +194,8 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple1 = new Triple("300", "name", TripleObject.FromData("name300"));
-            var testTriple2 = new Triple("700", "name", TripleObject.FromData("name700"));
+            var testTriple1 = new Triple("300", "name", (new JValue("name300"), -1));
+            var testTriple2 = new Triple("700", "name", (new JValue("name700"), -1));
             CollectionAssert.Contains(values, testTriple1);
             CollectionAssert.Contains(values, testTriple2);
             Assert.AreEqual(2, rsp.Values.Count());
@@ -219,8 +219,8 @@ namespace Hexastore.Test
 
             var rsp = new ObjectQueryExecutor().Query(query, (RocksGraph)set);
             var values = rsp.Values.ToArray();
-            var testTriple1 = new Triple("100", "name", TripleObject.FromData("name100"));
-            var testTriple2 = new Triple("500", "name", TripleObject.FromData("name500"));
+            var testTriple1 = new Triple("100", "name", (new JValue("name100"), -1));
+            var testTriple2 = new Triple("500", "name", (new JValue("name500"), -1));
             CollectionAssert.Contains(values, testTriple1);
             CollectionAssert.Contains(values, testTriple2);
             Assert.AreEqual(2, rsp.Values.Count());

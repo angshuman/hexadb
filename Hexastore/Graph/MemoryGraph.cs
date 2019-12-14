@@ -363,6 +363,11 @@ namespace Hexastore.Graph
             Assert(assert);
         }
 
+        public Triple SPI(string s, string p, int index)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private class SubjectGrouping : IGrouping<string, IGrouping<string, TripleObject>>
         {
             private KeyValuePair<string, IDictionary<string, ISet<TripleObject>>> _kv;

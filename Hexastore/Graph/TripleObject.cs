@@ -58,9 +58,19 @@ namespace Hexastore.Graph
             return new TripleObject((JValue)jToken, false, null);
         }
 
+        public static implicit operator TripleObject(ValueTuple<JToken, int> jToken)
+        {
+            return new TripleObject((JValue)jToken.Item1, false, jToken.Item2);
+        }
+
         public static implicit operator TripleObject(string id)
         {
             return new TripleObject(id, true, JTokenType.String, null);
+        }
+
+        public static implicit operator TripleObject(ValueTuple<string, int> id)
+        {
+            return new TripleObject(id.Item1, true, JTokenType.String, id.Item2);
         }
 
         public static TripleObject FromId(string s)
@@ -71,6 +81,11 @@ namespace Hexastore.Graph
         public static TripleObject FromData(string s)
         {
             return new TripleObject(s, false, JTokenType.String, null);
+        }
+
+        public static TripleObject FromData(string s, int index)
+        {
+            return new TripleObject(s, false, JTokenType.String, index);
         }
 
         public static TripleObject FromData(int n)
@@ -112,9 +127,9 @@ namespace Hexastore.Graph
         public override string ToString()
         {
             if (IsID) {
-                return $"<{Value}>";
+                return $"<{Value}> c:{Index}";
             } else {
-                return Value;
+                return $"{Value} c:{Index}";
             }
         }
 

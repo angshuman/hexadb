@@ -87,7 +87,10 @@ namespace Hexastore.Processor
                         var (data, _, _) = GetSetGraphs(storeId);
                         var retract = new List<Triple>();
                         foreach (var triple in patches) {
-                            retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+                            var t = data.SPI(triple.Subject, triple.Predicate, triple.Object.Index);
+                            if (t != null) {
+                                retract.Add(t);
+                            }
                         }
                         var assert = patches.Where(x => !x.Object.IsNull).ToArray();
                         data.BatchRetractAssert(retract, assert);
@@ -189,8 +192,7 @@ namespace Hexastore.Processor
 
         public JObject GetPredicates(string storeId)
         {
-            using (var op = _storeOperationFactory.Read(storeId))
-            {
+            using (var op = _storeOperationFactory.Read(storeId)) {
                 var (data, _, _) = GetSetGraphs(storeId);
                 var predicates = data.P().ToList();
                 return new JObject {
@@ -222,9 +224,9 @@ namespace Hexastore.Processor
                         values = result.Values?.Select(x =>
                         {
                             var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
-                            var rspGraph = new MemoryGraph();
-                            rspGraph.Assert(expanded).ToList();
-                            return TripleConverter.ToJson(x.Subject, rspGraph);
+                            var rspGraph = new SPOIndex();
+                            rspGraph.Assert(expanded);
+                            return rspGraph.ToJson(x.Subject);
                         }),
                         continuation = result.Continuation,
                         aggregates = result.Aggregates
