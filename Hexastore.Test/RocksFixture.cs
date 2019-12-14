@@ -18,7 +18,7 @@ namespace Hexastore.Test
         public readonly RocksGraphProvider GraphProvider;
         public readonly IStoreProvider StoreProvider;
         public readonly IStoreProcesor StoreProcessor;
-        public readonly IStoreOperationFactory StoreOperationFactory;
+        public readonly IMultiKeyLockFactory MultiKeyLockFactory;
         public readonly string SetId;
 
         public RocksFixture()
@@ -30,8 +30,8 @@ namespace Hexastore.Test
             Directory.CreateDirectory(testDirectory);
             GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), testDirectory);
             StoreProvider = new SetProvider(GraphProvider);
-            StoreOperationFactory = new StoreOperationFactory();
-            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), StoreOperationFactory, Mock.Of<ILogger<StoreProcessor>>());
+            MultiKeyLockFactory = new MultiKeyLockFactory();
+            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), MultiKeyLockFactory, Mock.Of<ILogger<StoreProcessor>>());
             SetId = "testset";
         }
 
