@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using dotenv.net;
 using Hexastore.Errors;
 using Hexastore.Processor;
@@ -26,6 +27,18 @@ namespace Hexastore.Web
         public void ConfigureServices(IServiceCollection services)
         {
             // services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAnyOrigin",
+                    builder => builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .WithExposedHeaders("content-disposition")
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600)));
+            });
+
             services.AddMvc();
             services.AddSingleton<IGraphProvider, RocksGraphProvider>();
             services.AddSingleton<IReasoner, Reasoner>();
@@ -52,6 +65,8 @@ namespace Hexastore.Web
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseCors("AllowAnyOrigin");
+
             app.UseMiddleware<PerfHeaderMiddleware>();
             app.UseMvc();
         }

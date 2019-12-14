@@ -14,6 +14,7 @@ namespace Hexastore.Query
     public class ObjectQueryExecutor
     {
         private readonly StoreError _storeErrors;
+        private static readonly char[] LinkDelimiterArray = Constants.LinkDelimeter.ToCharArray();
 
         public ObjectQueryExecutor()
         {
@@ -197,7 +198,7 @@ namespace Hexastore.Query
                 throw _storeErrors.PathEmpty;
             }
 
-            var paths = link.Path.Split(Constants.LinkDelimeter);
+            var paths = link.Path.Split(LinkDelimiterArray);
 
             var matched = source.Where(x =>
             {
@@ -224,7 +225,7 @@ namespace Hexastore.Query
                 throw _storeErrors.PathEmpty;
             }
 
-            var paths = link.Path.Split(Constants.LinkDelimeter).Reverse();
+            var paths = link.Path.Split(LinkDelimiterArray).Reverse();
 
             var matched = source.Where(x =>
             {

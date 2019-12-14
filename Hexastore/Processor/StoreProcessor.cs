@@ -68,12 +68,9 @@ namespace Hexastore.Processor
                     using (var op = _multiKeyLockFactory.WriteLock(storeId, graph))
                     {
                         var (data, _, _) = GetSetGraphs(storeId);
-                        if (strict && data.S(jobj[Constants.ID].ToString()).Any())
-                        {
-                            throw new StoreException($"Already contains object with id {jobj[Constants.ID]}",
-                                _storeErrors.AlreadyContainsIdError);
+                        if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
+                            throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", _storeErrors.AlreadyContainsIdError);
                         }
-
                         data.Assert(graph);
                     }
                 }
@@ -275,9 +272,10 @@ namespace Hexastore.Processor
             {
                 return null;
             }
-            var rspGraph = new MemoryGraph();
-            rspGraph.Assert(triples).ToList();
-            return TripleConverter.ToJson(subject, rspGraph);
+
+            var rspGraph = new SPOIndex();
+            rspGraph.Assert(triples);
+            return rspGraph.ToJson(subject);
         }
 
         public JObject GetPredicates(string storeId)
