@@ -65,9 +65,7 @@ namespace Hexastore.Processor
 
                     var graph = TripleConverter.FromJson((JObject)item);
 
-                    var keys = graph.Select(t => $"{storeId}.{t.Subject}.{t.Predicate}");
-
-                    using (var op = _multiKeyLockFactory.WriteLock(keys.ToArray()))
+                    using (var op = _multiKeyLockFactory.WriteLock(storeId, graph))
                     {
                         var (data, _, _) = GetSetGraphs(storeId);
                         if (strict && data.S(jobj[Constants.ID].ToString()).Any())
@@ -131,7 +129,7 @@ namespace Hexastore.Processor
 
                 var (data, _, _) = GetSetGraphs(storeId);
                 var timer1 = Stopwatch.StartNew();
-                using (var mlock = _multiKeyLockFactory.WriteLock(patches.Keys.ToArray()))
+                using (var mlock = _multiKeyLockFactory.WriteLock(storeId, patches.Values))
                 {
                     timer1.Stop();
                     var timer = Stopwatch.StartNew();
@@ -185,11 +183,10 @@ namespace Hexastore.Processor
             {
                 triplesToAdd = TripleConverter.FromJson((JObject)add);
             }
-            var keys = triplesToAdd.Select(t => $"{storeId}.{t.Subject}.{t.Predicate}");
 
             try
             {
-                using (var op = _multiKeyLockFactory.WriteLock(keys.ToArray()))
+                using (var op = _multiKeyLockFactory.WriteLock(storeId, triplesToAdd))
                 {
                     var (data, _, _) = GetSetGraphs(storeId);
                     if (remove is JObject)
@@ -234,8 +231,7 @@ namespace Hexastore.Processor
                         throw new InvalidOperationException("Invalid delete");
                     }
                     var triples = TripleConverter.FromJson(input as JObject);
-                    var keys = triples.Select(t => $"{storeId}.{t.Subject}.{t.Predicate}");
-                    using (var op = _multiKeyLockFactory.WriteLock(keys.ToArray()))
+                    using (var op = _multiKeyLockFactory.WriteLock(storeId, triples))
                     {
                         var (data, _, _) = GetSetGraphs(storeId);
                         data.Retract(triples);
@@ -251,8 +247,7 @@ namespace Hexastore.Processor
         public void AssertMeta(string storeId, JObject value)
         {
             var graph = TripleConverter.FromJson(value);
-            var keys = graph.Select(t => $"{storeId}.{t.Subject}.{t.Predicate}");
-            using (var op = _multiKeyLockFactory.WriteLock(keys.ToArray()))
+            using (var op = _multiKeyLockFactory.WriteLock(storeId, graph))
             {
                 var (data, infer, meta) = GetSetGraphs(storeId);
                 _reasoner.Spin(data, infer, meta);

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Hexastore.Graph;
 using Hexastore.Processor;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,21 +12,22 @@ namespace Hexastore.Test
     [TestClass]
     public class MultiKeyLockProcessorTest : RocksFixture
     {
-        private object[] _items;
         private MultiKeyLockFactory factoryUnderTest;
+        private string storeId;
 
         public MultiKeyLockProcessorTest()
         {
-           factoryUnderTest = new MultiKeyLockFactory(new ConcurrentDictionary<string, byte>(), 500);
+            factoryUnderTest = new MultiKeyLockFactory(new ConcurrentDictionary<string, byte>(), 500);
+            storeId = "teststore";
         }
 
 
         [TestMethod]
         public void Single_Key_Gets_Lock()
         {
-            var keys = new[] {"testKey1"};
+            var triples = new[] { new Triple("test", "key", "val") };
             var passed = false;
-            using (var mlock = factoryUnderTest.WriteLock(keys))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, triples))
             {
                 passed = true;
             }
@@ -35,9 +37,9 @@ namespace Hexastore.Test
         [TestMethod]
         public void Multi_Distinct_Key_Gets_Lock()
         {
-            var keys = new[] { "testKey1", "testKey2" };
+            var triples = new[] { new Triple("test", "key1", "val"), new Triple("test", "key2", "val") };
             var passed = false;
-            using (var mlock = factoryUnderTest.WriteLock(keys))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, triples))
             {
                 passed = true;
             }
@@ -45,35 +47,29 @@ namespace Hexastore.Test
         }
 
         [TestMethod]
-        public void Multi_Identical_Key_Times_Out()
+        public void Multi_Identical_Key_Gets_Lock()
         {
-            var keys = new[] { "testKey1", "testKey1" };
+            var triples = new[] { new Triple("test", "key1", "val"), new Triple("test", "key1", "val") };
             var passed = false;
-            try
-            {
-                using (var mlock = factoryUnderTest.WriteLock(keys))
-                {
-                    passed = false;
-                }
-            }
-            catch (TimeoutException)
+
+            using (var mlock = factoryUnderTest.WriteLock(storeId, triples))
             {
                 passed = true;
             }
-            
+
             Assert.IsTrue(passed);
         }
 
         [TestMethod]
         public void Single_Key_Sync_Gets_Lock()
         {
-            var keys1 = new[] { "testKey1" };
-            var keys2 = new[] { "testKey1" };
+            var keys1 = new[] { new Triple("test", "key1", "val") };
+            var keys2 = new[] { new Triple("test", "key1", "val") };
             var passed = false;
-            using (var mlock = factoryUnderTest.WriteLock(keys1))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, keys1))
             {
             }
-            using (var mlock = factoryUnderTest.WriteLock(keys2))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, keys2))
             {
                 passed = true;
             }
@@ -83,13 +79,13 @@ namespace Hexastore.Test
         [TestMethod]
         public void Multi_Key_Sync_Gets_Lock()
         {
-            var keys1 = new[] { "testKey1", "testKey2" };
-            var keys2 = new[] { "testKey1", "testKey2" };
+            var keys1 = new[] { new Triple("test", "key1", "val"), new Triple("test", "key2", "val") };
+            var keys2 = new[] { new Triple("test", "key1", "val"), new Triple("test", "key2", "val") };
             var passed = false;
-            using (var mlock = factoryUnderTest.WriteLock(keys1))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, keys1))
             {
             }
-            using (var mlock = factoryUnderTest.WriteLock(keys2))
+            using (var mlock = factoryUnderTest.WriteLock(storeId, keys2))
             {
                 passed = true;
             }
@@ -101,14 +97,14 @@ namespace Hexastore.Test
         {
             var numTasks = 32;
             var numKeys = 500;
-            var keys = new List<string[]>();
+            var keys = new List<Triple[]>();
 
             for (var i = 0; i < numTasks; i++)
             {
-                var keyArray = new string[numKeys];
+                var keyArray = new Triple[numKeys];
                 for (var k = 0; k < numKeys; k++)
                 {
-                    keyArray[k] = $"{i}.{k}";
+                    keyArray[k] = new Triple($"{i}", $"{k}", "val");
                 }
                 keys.Add(keyArray);
             }
@@ -117,7 +113,7 @@ namespace Hexastore.Test
 
             for (int t = 0; t < numTasks; t++)
             {
-                var tws = new TaskWithState(keys[t], 2000, MultiKeyLockFactory);
+                var tws = new TaskWithState(storeId, keys[t], 2000, MultiKeyLockFactory);
                 tasks[t] = new Task(tws.TryGetLock);
             }
 
@@ -139,14 +135,14 @@ namespace Hexastore.Test
         {
             var numTasks = 32;
             var numKeys = 500;
-            var keys = new List<string[]>();
+            var keys = new List<Triple[]>();
 
             for (var i = 0; i < numTasks; i++)
             {
-                var keyArray = new string[numKeys];
+                var keyArray = new Triple[numKeys];
                 for (var k = 0; k < numKeys; k++)
                 {
-                    keyArray[k] = $"{k}";
+                    keyArray[k] = new Triple($"{k}", $"{k}", "val");
                 }
                 keys.Add(keyArray);
             }
@@ -155,7 +151,7 @@ namespace Hexastore.Test
             var longerTimeoutFactory = new MultiKeyLockFactory(new ConcurrentDictionary<string, byte>(), 10000);
             for (int t = 0; t < numTasks; t++)
             {
-                var tws = new TaskWithState(keys[t], 20, longerTimeoutFactory);
+                var tws = new TaskWithState(storeId, keys[t], 20, longerTimeoutFactory);
                 tasks[t] = new Task(tws.TryGetLock);
             }
 
@@ -177,15 +173,15 @@ namespace Hexastore.Test
         {
             var numTasks = 32;
             var numKeys = 500;
-            var keys = new List<string[]>();
+            var keys = new List<Triple[]>();
             var passed = false;
 
             for (var i = 0; i < numTasks; i++)
             {
-                var keyArray = new string[numKeys];
+                var keyArray = new Triple[numKeys];
                 for (var k = 0; k < numKeys; k++)
                 {
-                    keyArray[k] = $"{k}";
+                    keyArray[k] = new Triple($"{k}", $"{k}", "val");
                 }
                 keys.Add(keyArray);
             }
@@ -194,7 +190,7 @@ namespace Hexastore.Test
             var longerTimeoutFactory = new MultiKeyLockFactory(new ConcurrentDictionary<string, byte>(), 1000);
             for (int t = 0; t < numTasks; t++)
             {
-                var tws = new TaskWithState(keys[t], 200, longerTimeoutFactory);
+                var tws = new TaskWithState(storeId, keys[t], 200, longerTimeoutFactory);
                 tasks[t] = new Task(tws.TryGetLock);
             }
 
@@ -217,18 +213,20 @@ namespace Hexastore.Test
                     passed = true;
                 }
             }
-            
+
             Assert.IsTrue(passed);
         }
 
         public class TaskWithState
         {
-            private string[] keys;
+            private Triple[] keys;
             private int spinMs;
             private IMultiKeyLockFactory factory;
+            private string storeId;
 
-            public TaskWithState(string[] keys, int spinMs, IMultiKeyLockFactory factory)
+            public TaskWithState(string storeId, Triple[] keys, int spinMs, IMultiKeyLockFactory factory)
             {
+                this.storeId = storeId;
                 this.keys = keys;
                 this.spinMs = spinMs;
                 this.factory = factory;
@@ -236,7 +234,7 @@ namespace Hexastore.Test
 
             public void TryGetLock()
             {
-                using (var mLock = factory.WriteLock(keys))
+                using (var mLock = factory.WriteLock(storeId, keys))
                 {
                     Thread.Sleep(spinMs);
                 }

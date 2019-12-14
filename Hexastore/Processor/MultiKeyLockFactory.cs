@@ -2,7 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Hexastore.Graph;
 
 namespace Hexastore.Processor
 {
@@ -21,11 +23,24 @@ namespace Hexastore.Processor
         {
         }
 
-        public IDisposable WriteLock(string[] keys)
+        private string[] getKeys(string storeId, IEnumerable<Triple> triples)
+        {
+            var SPs = new Dictionary<string, Triple>();
+            
+            foreach (var triple in triples)
+            {
+                SPs[$"{storeId}.{triple.Subject}.{triple.Predicate}"] = triple;
+            }
+
+            return SPs.Keys.ToArray();
+        }
+
+        public IDisposable WriteLock(string storeId, IEnumerable<Triple> triples)
         {
             var stack = new Stack<string>();
             var timer = Stopwatch.StartNew();
             var succeeded = false;
+            var keys = getKeys(storeId, triples);
             while (timer.ElapsedMilliseconds <= _timeoutMs && !succeeded)
             {
                 succeeded = true;
