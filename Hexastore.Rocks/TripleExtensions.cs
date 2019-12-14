@@ -63,13 +63,10 @@ namespace Hexastore.Rocks
 
         private static byte[] ReadNext(byte[] source, int index)
         {
-            var lenBytes = new byte[4];
-            Buffer.BlockCopy(source, index, lenBytes, 0, 4);
-            var len = BitConverter.ToInt32(lenBytes, 0);
-
-            var destination = new byte[len];
-            Buffer.BlockCopy(source, index + 4, destination, 0, len);
-            return destination;
+            var lenSpan = new ReadOnlySpan<byte>(source, index, 4);
+            var len = BitConverter.ToInt32(lenSpan.ToArray(), 0);
+            var destination = new ReadOnlySpan<byte>(source, index + 4, len);
+            return destination.ToArray();
         }
 
         private static byte[] GetBytes(string str)
