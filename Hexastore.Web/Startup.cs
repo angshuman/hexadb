@@ -44,7 +44,7 @@ namespace Hexastore.Web
             services.AddSingleton<IReasoner, Reasoner>();
             services.AddSingleton<IStoreProcesor, StoreProcessor>();
             services.AddSingleton<IStoreProvider, SetProvider>();
-            services.AddSingleton<IStoreOperationFactory, StoreOperationFactory>();
+            services.AddSingleton<IMultiKeyLockFactory, MultiKeyLockFactory>();
 
             services.AddSingleton<StoreError>();
             services.AddSingleton<EventReceiver>();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -155,7 +156,8 @@ namespace Hexastore.Web.Controllers
         [HttpPatch("{storeId}/json")]
         public async Task<IActionResult> PatchJson(string storeId, [FromBody]JToken data)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId}", storeId);
+            var requestTimer = Stopwatch.StartNew();
+            //_logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId}", storeId);
             try {
                 var e = new StoreEvent
                 {
@@ -163,6 +165,7 @@ namespace Hexastore.Web.Controllers
                     Data = data.ToString(Formatting.None)
                 };
                 await SendEvent(storeId, e);
+                _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId} took {time}ms", storeId, requestTimer.ElapsedMilliseconds);
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
