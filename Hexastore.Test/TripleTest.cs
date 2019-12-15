@@ -82,8 +82,8 @@ namespace Hexastore.Test
             _set.Assert("s2", "b2", "c2"); // duplicate assert
             _set.Assert("s2", "b3", "c3");
 
-            _set.Assert("s1", "b2", "c21");
-            _set.Assert("s1", "b2", "c22");
+            _set.Assert("s1", "b2", ("c21", 0));
+            _set.Assert("s1", "b2", ("c22", 1));
             _set.Assert("s1", "b3", TripleObject.FromData("c3"));
             _set.Assert("s1", "b1", "c1");
 
@@ -91,8 +91,8 @@ namespace Hexastore.Test
 
             var byS1B2 = _set.SP("s1", "b2").ToArray();
             Assert.AreEqual(byS1B2.Count(), 2);
-            CollectionAssert.Contains(byS1B2, new Triple("s1", "b2", "c21"));
-            CollectionAssert.Contains(byS1B2, new Triple("s1", "b2", "c22"));
+            CollectionAssert.Contains(byS1B2, new Triple("s1", "b2", ("c21", 0)));
+            CollectionAssert.Contains(byS1B2, new Triple("s1", "b2", ("c22", 1)));
 
             var byS1B3 = _set.SP("s1", "b3").ToArray();
             Assert.AreEqual(byS1B3.Count(), 1);

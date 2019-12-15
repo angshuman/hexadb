@@ -81,7 +81,10 @@ namespace Hexastore.Graph
                 z = new List<TZ>();
                 yz[ty] = z;
             }
-            z.Add(tz);
+            if (!z.Contains(tz)) {
+                // todo: keyed collection / ordered hashset
+                z.Add(tz);
+            }
         }
         public IEnumerable<IGrouping<string, TripleObject>> GetSubjectGroupings(string s)
         {

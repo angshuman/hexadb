@@ -8,17 +8,16 @@ namespace Hexastore.Rocks
 {
     public class RocksGraph : IStoreGraph
     {
-        private readonly string _name;
         private readonly RocksDb _db;
         private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
 
         public RocksGraph(string name, RocksDb db)
         {
-            _name = name;
+            Name = name;
             _db = db;
         }
 
-        public string Name => _name;
+        public string Name { get; }
 
         public int Count => throw new System.NotImplementedException();
 
@@ -28,7 +27,7 @@ namespace Hexastore.Rocks
                 return false;
             }
 
-            var (sKey, pKey, oKey) = new KeySegments(_name, t.Subject, t.Predicate, t.Object).GetKeys();
+            var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
 
             var serializedTriple = t.ToBytes();
             using (var batch = new WriteBatch()) {
@@ -48,7 +47,7 @@ namespace Hexastore.Rocks
                         continue;
                     }
 
-                    var (sKey, pKey, oKey) = new KeySegments(_name, t.Subject, t.Predicate, t.Object).GetKeys();
+                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
                     var serializedTriple = t.ToBytes();
 
                     batch.Put(sKey, serializedTriple);
@@ -68,7 +67,7 @@ namespace Hexastore.Rocks
         {
             using (var batch = new WriteBatch()) {
                 foreach (var t in retract) {
-                    var (sKey, pKey, oKey) = new KeySegments(_name, t.Subject, t.Predicate, t.Object).GetKeys();
+                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
 
                     batch.Delete(sKey);
                     batch.Delete(pKey);
@@ -76,7 +75,7 @@ namespace Hexastore.Rocks
                 }
 
                 foreach (var t in assert) {
-                    var (sKey, pKey, oKey) = new KeySegments(_name, t.Subject, t.Predicate, t.Object).GetKeys();
+                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
                     var serializedTriple = t.ToBytes();
 
                     batch.Put(sKey, serializedTriple);
@@ -103,17 +102,17 @@ namespace Hexastore.Rocks
 
         public bool Exists(string s, string p, TripleObject o)
         {
-            var keySegments = new KeySegments(_name, s, p, o);
+            var keySegments = new KeySegments(Name, s, p, o);
             var oPrefix = keySegments.GetOPrefix();
             var start = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteOne);
             var oEnumerable = new RocksEnumerable(_db, start, end, (it) => it.Next());
-            return oEnumerable.Any();
+            return oEnumerable.Any(x => x.Predicate == p);
         }
 
         public IEnumerable<IGrouping<string, IGrouping<string, TripleObject>>> GetGroupings()
         {
-            var nameBytes = KeySegments.GetNameSKey(_name);
+            var nameBytes = KeySegments.GetNameSKey(Name);
             var start = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteOne);
             var subjects = new RocksEnumerable(_db, start, end, (it) =>
@@ -125,25 +124,25 @@ namespace Hexastore.Rocks
             }).Select(x => x.Subject);
 
             foreach (var s in subjects) {
-                var sh = KeySegments.GetNameSKeySubject(_name, s);
+                var sh = KeySegments.GetNameSKeySubject(Name, s);
                 var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
                 var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
 
-                yield return new RocksSubjectGrouping(_db, _name, s, startS, endS);
+                yield return new RocksSubjectGrouping(_db, Name, s, startS, endS);
             }
         }
 
         public IEnumerable<IGrouping<string, TripleObject>> GetSubjectGroupings(string s)
         {
-            var sh = KeySegments.GetNameSKeySubject(_name, s);
+            var sh = KeySegments.GetNameSKeySubject(Name, s);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
-            return new RocksSubjectGrouping(_db, _name, s, startS, endS);
+            return new RocksSubjectGrouping(_db, Name, s, startS, endS);
         }
 
         public IEnumerable<Triple> GetTriples()
         {
-            var nameBytes = KeySegments.GetNameSKey(_name);
+            var nameBytes = KeySegments.GetNameSKey(Name);
             var start = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteOne);
             return new RocksEnumerable(_db, start, end, (Iterator it) => { return it.Next(); });
@@ -165,7 +164,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> S(string s)
         {
-            var sh = KeySegments.GetNameSKeySubject(_name, s);
+            var sh = KeySegments.GetNameSKeySubject(Name, s);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
             return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
@@ -173,12 +172,12 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> S(string s, Triple c)
         {
-            var sh = KeySegments.GetNameSKeySubject(_name, s);
+            var sh = KeySegments.GetNameSKeySubject(Name, s);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
 
             // todo: optimize
-            var (sKey, _, _) = new KeySegments(_name, c).GetKeys();
+            var (sKey, _, _) = new KeySegments(Name, c).GetKeys();
 
             var continuation = KeyConfig.ConcatBytes(sKey, KeyConfig.ByteOne);
 
@@ -193,20 +192,27 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> SP(string s, string p)
         {
-            var sh = KeySegments.GetNameSKeySubjectPredicate(_name, s, p);
+            var sh = KeySegments.GetNameSKeySubjectPredicate(Name, s, p);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
             return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
         }
 
+        public Triple SPI(string s, string p, int index)
+        {
+            var sh = KeySegments.GetNameSKeySubjectPredicateIndex(Name, s, p, index);
+            var t = _db.Get(sh);
+            return t?.ToTriple();
+        }
+
         public IEnumerable<Triple> SP(string s, string p, Triple c)
         {
-            var sh = KeySegments.GetNameSKeySubjectPredicate(_name, s, p);
+            var sh = KeySegments.GetNameSKeySubjectPredicate(Name, s, p);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
 
             // todo: optimize
-            var (sKey, _, _) = new KeySegments(_name, c).GetKeys();
+            var (sKey, _, _) = new KeySegments(Name, c).GetKeys();
             var continuation = KeyConfig.ConcatBytes(sKey, KeyConfig.ByteOne);
 
             if (KeyConfig.ByteCompare(continuation, startS) < 0) {
@@ -220,7 +226,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> O(TripleObject o)
         {
-            var oh = KeySegments.GetNameOKeyObject(_name, o);
+            var oh = KeySegments.GetNameOKeyObject(Name, o);
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
@@ -233,11 +239,11 @@ namespace Hexastore.Rocks
                 return O(o);
             }
 
-            var oh = KeySegments.GetNameOKeyObject(_name, o);
+            var oh = KeySegments.GetNameOKeyObject(Name, o);
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
-            var (_, _, oKey) = new KeySegments(_name, c).GetKeys();
+            var (_, _, oKey) = new KeySegments(Name, c).GetKeys();
             var continuation = KeyConfig.ConcatBytes(oKey, KeyConfig.ByteOne);
 
             if (KeyConfig.ByteCompare(continuation, startS) < 0) {
@@ -251,7 +257,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> OS(TripleObject o, string s)
         {
-            var oh = KeySegments.GetNameOKeyObjectSubject(_name, o, s);
+            var oh = KeySegments.GetNameOKeyObjectSubject(Name, o, s);
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
@@ -263,11 +269,11 @@ namespace Hexastore.Rocks
             if (c == null) {
                 return OS(o, s);
             }
-            var oh = KeySegments.GetNameOKeyObjectSubject(_name, o, s);
+            var oh = KeySegments.GetNameOKeyObjectSubject(Name, o, s);
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
-            var (_, _, oKey) = new KeySegments(_name, c).GetKeys();
+            var (_, _, oKey) = new KeySegments(Name, c).GetKeys();
             var continuation = KeyConfig.ConcatBytes(oKey, KeyConfig.ByteOne);
 
             if (KeyConfig.ByteCompare(continuation, startS) < 0) {
@@ -280,7 +286,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> P(string p)
         {
-            var ph = KeySegments.GetNamePKeyPredicate(_name, p);
+            var ph = KeySegments.GetNamePKeyPredicate(Name, p);
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
@@ -289,7 +295,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<string> P()
         {
-            var pPrefix = KeySegments.GetNamePPredicate(_name);
+            var pPrefix = KeySegments.GetNamePPredicate(Name);
             var startP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteZero);
             var endP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteOne);
             var predicates = new RocksEnumerable(_db, startP, endP, (it) =>
@@ -308,11 +314,11 @@ namespace Hexastore.Rocks
             if (c == null) {
                 return P(p);
             }
-            var ph = KeySegments.GetNamePKeyPredicate(_name, p);
+            var ph = KeySegments.GetNamePKeyPredicate(Name, p);
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
-            var (_, pKey, _) = new KeySegments(_name, c).GetKeys();
+            var (_, pKey, _) = new KeySegments(Name, c).GetKeys();
             var continuation = KeyConfig.ConcatBytes(pKey, KeyConfig.ByteOne);
 
             if (KeyConfig.ByteCompare(continuation, startS) < 0) {
@@ -326,7 +332,7 @@ namespace Hexastore.Rocks
 
         public IEnumerable<Triple> PO(string p, TripleObject o)
         {
-            var ph = KeySegments.GetNamePKeyPredicateObject(_name, p, o);
+            var ph = KeySegments.GetNamePKeyPredicateObject(Name, p, o);
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
@@ -338,11 +344,11 @@ namespace Hexastore.Rocks
             if (c == null) {
                 return PO(p, o);
             }
-            var ph = KeySegments.GetNamePKeyPredicateObject(_name, p, o);
+            var ph = KeySegments.GetNamePKeyPredicateObject(Name, p, o);
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
-            var (_, pKey, _) = new KeySegments(_name, c).GetKeys();
+            var (_, pKey, _) = new KeySegments(Name, c).GetKeys();
             var continuation = KeyConfig.ConcatBytes(pKey, KeyConfig.ByteOne);
 
             if (KeyConfig.ByteCompare(continuation, startS) < 0) {
@@ -363,7 +369,7 @@ namespace Hexastore.Rocks
         {
             using (var batch = new WriteBatch()) {
                 foreach (var t in triples) {
-                    var (sKey, pKey, oKey) = new KeySegments(_name, t).GetKeys();
+                    var (sKey, pKey, oKey) = new KeySegments(Name, t).GetKeys();
                     batch.Delete(sKey);
                     batch.Delete(pKey);
                     batch.Delete(oKey);
@@ -377,7 +383,7 @@ namespace Hexastore.Rocks
             if (!Exists(s, p, o)) {
                 return false;
             }
-            var (sKey, pKey, oKey) = new KeySegments(_name, s, p, o).GetKeys();
+            var (sKey, pKey, oKey) = new KeySegments(Name, s, p, o).GetKeys();
             using (var batch = new WriteBatch()) {
                 batch.Delete(sKey);
                 batch.Delete(pKey);
