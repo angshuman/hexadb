@@ -3,46 +3,37 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Hexastore.Processor
 {
     public class StoreOperationFactory : IStoreOperationFactory
     {
-        private readonly ConcurrentDictionary<string, ReaderWriterLock> _locks = new ConcurrentDictionary<string, ReaderWriterLock>();
-
-        public IDisposable Read(string storeId)
-        {
-            var storeLock = _locks.GetOrAdd(storeId, (x) =>
-            {
-                return new ReaderWriterLock();
-            });
-            storeLock.AcquireReaderLock(10_000);
-            return new StoreOperation(storeLock);
-        }
+        private readonly ConcurrentDictionary<string, Mutex> _locks = new ConcurrentDictionary<string, Mutex>();
 
         public IDisposable Write(string storeId)
         {
             var storeLock = _locks.GetOrAdd(storeId, (x) =>
             {
-                return new ReaderWriterLock();
+                return new Mutex();
             });
-            storeLock.AcquireWriterLock(10_000);
+            storeLock.WaitOne();
             return new StoreOperation(storeLock);
         }
     }
 
     public class StoreOperation : IDisposable
     {
-        private readonly ReaderWriterLock _storeLock;
+        private readonly Mutex _storeLock;
 
-        public StoreOperation(ReaderWriterLock storeLock)
+        public StoreOperation(Mutex storeLock)
         {
             _storeLock = storeLock;
         }
 
         public void Dispose()
         {
-            _storeLock.ReleaseLock();
+            _storeLock.ReleaseMutex();
         }
     }
 }
