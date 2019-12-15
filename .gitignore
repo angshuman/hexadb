@@ -4,6 +4,7 @@
 **/data/
 **/out/
 *.env
+**/BenchmarkDotNet.Artifacts/
 
 # User-specific files
 *.suo
