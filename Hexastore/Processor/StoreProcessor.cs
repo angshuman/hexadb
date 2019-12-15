@@ -69,36 +69,36 @@ namespace Hexastore.Processor
         public void PatchJson(string storeId, JToken token)
         {
             JArray inputs;
-            using (var op = _storeOperationFactory.Write(storeId)) {
-                if (token is JObject) {
-                    inputs = new JArray() { token };
-                } else if (token is JArray) {
-                    inputs = token as JArray;
-                } else {
-                    throw new InvalidOperationException("Invalid patch");
-                }
+            if (token is JObject) {
+                inputs = new JArray() { token };
+            } else if (token is JArray) {
+                inputs = token as JArray;
+            } else {
+                throw new InvalidOperationException("Invalid patch");
+            }
 
+            try {
                 foreach (var input in inputs) {
-                    try {
-                        if (!(input is JObject)) {
-                            throw new InvalidOperationException("Invalid patch");
-                        }
-                        var patches = TripleConverter.FromJson(input as JObject);
-                        var (data, _, _) = GetSetGraphs(storeId);
+                    if (!(input is JObject)) {
+                        throw new InvalidOperationException("Invalid patch");
+                    }
+                    var patch = TripleConverter.FromJson(input as JObject);
+                    var (data, _, _) = GetSetGraphs(storeId);
+                    using (var op = _storeOperationFactory.Write(storeId)) {
                         var retract = new List<Triple>();
-                        foreach (var triple in patches) {
+                        foreach (var triple in patch) {
                             var t = data.SPI(triple.Subject, triple.Predicate, triple.Object.Index);
                             if (t != null) {
                                 retract.Add(t);
                             }
                         }
-                        var assert = patches.Where(x => !x.Object.IsNull).ToArray();
+                        var assert = patch.Where(x => !x.Object.IsNull);
                         data.BatchRetractAssert(retract, assert);
-                    } catch (Exception e) {
-                        _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                        throw e;
                     }
                 }
+            } catch (Exception e) {
+                _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw e;
             }
         }
 
@@ -177,28 +177,23 @@ namespace Hexastore.Processor
 
         public JObject GetSubject(string storeId, string subject, string[] expand, int level)
         {
-            using (var op = _storeOperationFactory.Read(storeId)) {
-
-                var (data, _, _) = GetSetGraphs(storeId);
-                var triples = GraphOperator.Expand(data, subject, level, expand).ToList();
-                if (triples.Count() == 0) {
-                    return null;
-                }
-                var rspGraph = new SPOIndex();
-                rspGraph.Assert(triples);
-                return rspGraph.ToJson(subject);
+            var (data, _, _) = GetSetGraphs(storeId);
+            var triples = GraphOperator.Expand(data, subject, level, expand).ToList();
+            if (triples.Count() == 0) {
+                return null;
             }
+            var rspGraph = new SPOIndex();
+            rspGraph.Assert(triples);
+            return rspGraph.ToJson(subject);
         }
 
         public JObject GetPredicates(string storeId)
         {
-            using (var op = _storeOperationFactory.Read(storeId)) {
-                var (data, _, _) = GetSetGraphs(storeId);
-                var predicates = data.P().ToList();
-                return new JObject {
+            var (data, _, _) = GetSetGraphs(storeId);
+            var predicates = data.P().ToList();
+            return new JObject {
                     new JProperty("values", new JArray(predicates))
                 };
-            }
         }
 
         public JObject GetType(string storeId, string[] type, string[] expand, int level)
@@ -208,34 +203,32 @@ namespace Hexastore.Processor
 
         public JObject Query(string storeId, JObject query, string[] expand, int level)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
+            try {
+                var (data, _, _) = GetSetGraphs(storeId);
+                ObjectQueryModel queryModel;
                 try {
-                    var (data, _, _) = GetSetGraphs(storeId);
-                    ObjectQueryModel queryModel;
-                    try {
-                        queryModel = query.ToObject<ObjectQueryModel>();
-                    } catch (Exception e) {
-                        throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
-                    }
-
-                    var result = new ObjectQueryExecutor().Query(queryModel, data);
-                    dynamic response = new
-                    {
-                        values = result.Values?.Select(x =>
-                        {
-                            var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
-                            var rspGraph = new SPOIndex();
-                            rspGraph.Assert(expanded);
-                            return rspGraph.ToJson(x.Subject);
-                        }),
-                        continuation = result.Continuation,
-                        aggregates = result.Aggregates
-                    };
-                    return JObject.FromObject(response);
+                    queryModel = query.ToObject<ObjectQueryModel>();
                 } catch (Exception e) {
-                    _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                    throw e;
+                    throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
                 }
+
+                var result = new ObjectQueryExecutor().Query(queryModel, data);
+                dynamic response = new
+                {
+                    values = result.Values?.Select(x =>
+                    {
+                        var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
+                        var rspGraph = new SPOIndex();
+                        rspGraph.Assert(expanded);
+                        return rspGraph.ToJson(x.Subject);
+                    }),
+                    continuation = result.Continuation,
+                    aggregates = result.Aggregates
+                };
+                return JObject.FromObject(response);
+            } catch (Exception e) {
+                _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw e;
             }
         }
 
