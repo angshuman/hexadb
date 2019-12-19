@@ -37,7 +37,7 @@ namespace Hexastore.Processor
 
         public IDisposable WriteLock(string storeId, IEnumerable<Triple> triples)
         {
-            var stack = new Stack<string>();
+            var stack = new ConcurrentStack<string>();
             var timer = Stopwatch.StartNew();
             var succeeded = false;
             var keys = getKeys(storeId, triples);

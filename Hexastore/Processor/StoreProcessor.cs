@@ -126,7 +126,7 @@ namespace Hexastore.Processor
                             retract.Add(t);
                         }
                     }
-                    var assert = patch.Where(x => !x.Object.IsNull);
+                    var assert = patches.Values.Where(x => !x.Object.IsNull);
                     data.BatchRetractAssert(retract, assert);
                 }
             } 
@@ -135,9 +135,6 @@ namespace Hexastore.Processor
                 _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                 throw e;
             }
-
-            _logger.LogInformation($"lock: {totalLockTime}ms, waiting: {totalWaitTime}ms, processing: {totalTime}ms, retract: {totalRetractTime}ms, assert: {totalAssertTime}ms, batch: {totalBatchTime}ms, length: {inputs.Count}");
-
         }
 
         public void PatchTriple(string storeId, JObject input)
