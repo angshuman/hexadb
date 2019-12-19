@@ -1,6 +1,7 @@
 ﻿using Hexastore.Graph;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Hexastore.Rocks
@@ -39,37 +40,56 @@ namespace Hexastore.Rocks
         public static Triple ToTriple(this byte[] spoBytes)
         {
             var index = 0;
-            var sBytes = ReadNext(spoBytes, index);
-            index += 4 + sBytes.Length;
-            var pBytes = ReadNext(spoBytes, index);
-            index += 4 + pBytes.Length;
-            var arrayIndexBytes = ReadNext(spoBytes, index);
-            index += 4 + arrayIndexBytes.Length;
-            var idBytes = ReadNext(spoBytes, index);
-            index += 4 + idBytes.Length;
-            var oTypeBytes = ReadNext(spoBytes, index);
-            index += 4 + oTypeBytes.Length;
-            var oBytes = ReadNext(spoBytes, index);
+            var (s, slen) = ReadString(spoBytes, index);
+            index += 4 + slen;
+            var (p, pLen) = ReadString(spoBytes, index);
+            index += 4 + pLen;
+            var (arrayIndex, arrayIndexLength) = ReadInt(spoBytes, index);
+            index += 4 + arrayIndexLength;
+            var (id, idLen) = ReadBool(spoBytes, index);
+            index += 4 + idLen;
+            var (type, typeLength) = ReadUInt16(spoBytes, index);
+            index += 4 + typeLength;
+            var (ovalue, _) = ReadString(spoBytes, index);
 
-            var s = GetString(sBytes);
-            var p = GetString(pBytes);
-
-            var arrayIndex = BitConverter.ToInt32(arrayIndexBytes, 0);
-            var ovalue = GetString(oBytes);
-            var id = idBytes[0] == 1 ? true : false;
-            var type = (JTokenType)BitConverter.ToUInt16(oTypeBytes, 0);
-            return new Triple(s, p, new TripleObject(ovalue, id, type, arrayIndex));
+            return new Triple(s, p, new TripleObject(ovalue, id, (JTokenType)type, arrayIndex));
         }
 
         private static byte[] ReadNext(byte[] source, int index)
         {
-            var lenBytes = new byte[4];
-            Buffer.BlockCopy(source, index, lenBytes, 0, 4);
-            var len = BitConverter.ToInt32(lenBytes, 0);
+            var lenSpan = new ReadOnlySpan<byte>(source, index, 4);
+            var len = MemoryMarshal.Read<int>(lenSpan);
+            var destination = new ReadOnlySpan<byte>(source, index + 4, len);
+            return destination.ToArray();
+        }
 
-            var destination = new byte[len];
-            Buffer.BlockCopy(source, index + 4, destination, 0, len);
-            return destination;
+        private static (string, int) ReadString(byte[] source, int index)
+        {
+            var lenSpan = new ReadOnlySpan<byte>(source, index, 4);
+            var len = MemoryMarshal.Read<int>(lenSpan);
+            return (Encoding.UTF8.GetString(source, index + 4, len), len);
+        }
+
+        private static (bool, int) ReadBool(byte[] source, int index)
+        {
+            var valueSpan = new ReadOnlySpan<byte>(source, index + 4, 1);
+            return (MemoryMarshal.Read<bool>(valueSpan), 1);
+        }
+
+        private static (int, int) ReadInt(byte[] source, int index)
+        {
+            var lenSpan = new ReadOnlySpan<byte>(source, index, 4);
+            var len = MemoryMarshal.Read<int>(lenSpan);
+            var valueSpan = new ReadOnlySpan<byte>(source, index + 4, len);
+            return (MemoryMarshal.Read<int>(valueSpan), len);
+        }
+
+        private static (ushort, int) ReadUInt16(byte[] source, int index)
+        {
+            var lenSpan = new ReadOnlySpan<byte>(source, index, 4);
+            var len = MemoryMarshal.Read<int>(lenSpan);
+            var valueSpan = new ReadOnlySpan<byte>(source, index + 4, len);
+            return (MemoryMarshal.Read<ushort>(valueSpan), len);
         }
 
         private static byte[] GetBytes(string str)

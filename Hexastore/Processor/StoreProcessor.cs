@@ -99,17 +99,8 @@ namespace Hexastore.Processor
                 throw new InvalidOperationException("Invalid patch input");
             }
 
-            var totalLockTime = 0l;
-            var totalWaitTime = 0l;
-            var totalTime = 0l;
-            var totalRetractTime = 0l;
-            var totalAssertTime = 0l;
-            var totalBatchTime = 0l;
-
             try
             {
-                var timer2 = Stopwatch.StartNew();
-
                 var patches = new Dictionary<string, Triple>();
                 foreach (var input in inputs)
                 {
@@ -125,35 +116,20 @@ namespace Hexastore.Processor
                 }
 
                 var (data, _, _) = GetSetGraphs(storeId);
-                var timer1 = Stopwatch.StartNew();
                 using (var mlock = _multiKeyLockFactory.WriteLock(storeId, patches.Values))
                 {
-                    timer1.Stop();
-                    var timer = Stopwatch.StartNew();
                     var retract = new List<Triple>();
-                    var retractTimer = Stopwatch.StartNew();
                     foreach (var triple in patches.Values)
                     {
-                        retract.AddRange(data.SP(triple.Subject, triple.Predicate));
+                        var t = data.SPI(triple.Subject, triple.Predicate, triple.Object.Index);
+                        if (t != null) {
+                            retract.Add(t);
+                        }
                     }
-                    totalRetractTime += retractTimer.ElapsedMilliseconds;
-
-                    var assertTimer = Stopwatch.StartNew();
-                    var assert = patches.Values.Where(x => !x.Object.IsNull).ToArray();
-                    totalAssertTime += assertTimer.ElapsedMilliseconds;
-
-                    var batchTimer = Stopwatch.StartNew();
-                    //SNA
+                    var assert = patch.Where(x => !x.Object.IsNull);
                     data.BatchRetractAssert(retract, assert);
-                    totalBatchTime += batchTimer.ElapsedMilliseconds;
-                    timer.Stop();
-                    totalLockTime += timer.ElapsedMilliseconds;
                 }
-
-                totalWaitTime += timer1.ElapsedMilliseconds;
-                totalTime += timer2.ElapsedMilliseconds;
-
-            }
+            } 
             catch (Exception e)
             {
                 _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
@@ -313,9 +289,9 @@ namespace Hexastore.Processor
                     values = result.Values?.Select(x =>
                     {
                         var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
-                        var rspGraph = new MemoryGraph();
-                        rspGraph.Assert(expanded).ToList();
-                        return TripleConverter.ToJson(x.Subject, rspGraph);
+                        var rspGraph = new SPOIndex();
+                        rspGraph.Assert(expanded);
+                        return rspGraph.ToJson(x.Subject);
                     }),
                     continuation = result.Continuation,
                     aggregates = result.Aggregates

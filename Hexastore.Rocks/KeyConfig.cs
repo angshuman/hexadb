@@ -38,7 +38,7 @@ namespace Hexastore.Rocks
         {
             if (_sKey == null) {
                 var z = KeyConfig.ByteZero;
-                _sKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteS, z, S, z, P, z, Index, z, IsId, z, O);
+                _sKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteS, z, S, z, P, z, Index);
                 _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, Index, z, S);
                 _oKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P, z, Index);
             }
@@ -72,6 +72,16 @@ namespace Hexastore.Rocks
             var sBytes = KeyConfig.GetBytes(subject);
             var pBytes = KeyConfig.GetBytes(predicate);
             return KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteS, z, sBytes, z, pBytes);
+        }
+
+        public static byte[] GetNameSKeySubjectPredicateIndex(string name, string subject, string predicate, int index)
+        {
+            var nameBytes = KeyConfig.GetBytes(name);
+            var z = KeyConfig.ByteZero;
+            var sBytes = KeyConfig.GetBytes(subject);
+            var pBytes = KeyConfig.GetBytes(predicate);
+            var indexBytes = BitConverter.GetBytes(index);
+            return KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteS, z, sBytes, z, pBytes, z, indexBytes);
         }
 
         public static byte[] GetNameOKeyObject(string name, TripleObject o)

@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Hexastore.Graph
 {
-    public interface IStoreGraph : IGraph, IPagableGraph, ISPIndexQueryableGraph
+    public interface ISPIndexQueryableGraph
     {
+        Triple SPI(string s, string p, int index);
     }
 }

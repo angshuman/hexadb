@@ -140,18 +140,20 @@ namespace Hexastore.Test
                 name = (string)null,
                 contains = new
                 {
+                    id = "200",
                     name = "name202",
                     values = new object[] {
                         new
                         {
+                            id = "300",
                             name = "name303",
                             age = (int?)null,
-                        }
+                        },
                     }
                 }
             };
-            StoreProcessor.PatchJson("app2", JObject.FromObject(patch));
 
+            StoreProcessor.PatchJson("app2", JObject.FromObject(patch));
             var rsp = StoreProcessor.GetSubject("app2", "100", null, 3);
             var expected = new
             {
@@ -159,12 +161,17 @@ namespace Hexastore.Test
                 age = 20,
                 contains = new
                 {
-                    id = "100#contains",
+                    id = "200",
                     name = "name202",
-                    values = new
-                    {
-                        id = "100#contains#values#0",
-                        name = "name303"
+                    values = new object[] {
+                        new {
+                            id = "300",
+                            name = "name303"
+                        },
+                        new {
+                            id = "400",
+                            name = "name400"
+                        }
                     }
                 }
             };
