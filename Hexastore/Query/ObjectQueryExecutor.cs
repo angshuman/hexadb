@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading;
 using Hexastore.Errors;
 using Hexastore.Graph;
-using Hexastore.Web.Errors;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Query
@@ -23,7 +19,8 @@ namespace Hexastore.Query
         public ObjectQueryResponse Query(ObjectQueryModel query, IStoreGraph graph)
         {
             query.PageSize = query.PageSize != 0 ? query.PageSize : Constants.DefaultPageSize;
-            if (query.Id != null) {
+            if (query.Id != null)
+            {
                 var item = graph.S(query.Id).FirstOrDefault();
                 return new ObjectQueryResponse
                 {
@@ -32,12 +29,14 @@ namespace Hexastore.Query
                 };
             }
 
-            if (query.Filter == null) {
+            if (query.Filter == null)
+            {
                 throw _storeErrors.AtLeastOneFilter;
             }
 
             var firstFilter = query.Filter.FirstOrDefault();
-            if (firstFilter.Key == null) {
+            if (firstFilter.Key == null)
+            {
                 throw _storeErrors.AtLeastOneFilter;
             }
 
@@ -49,23 +48,27 @@ namespace Hexastore.Query
                 : null;
 
             var rsp = CreateConstraint(graph, firstFilter.Key, firstFilter.Value, cTriple);
-            foreach (var filter in query.Filter.Skip(1)) {
+            foreach (var filter in query.Filter.Skip(1))
+            {
                 rsp = ApplyConstraint(rsp, graph, filter.Key, filter.Value);
             }
-
-            if (query.HasObject != null) {
-                foreach (var obj in query.HasObject) {
+            if (query.HasObject != null)
+            {
+                Console.WriteLine($"Apply Outgoing X: {query.HasObject.Length}");
+                foreach (var obj in query.HasObject)
+                {
                     rsp = ApplyOutgoing(rsp, graph, obj);
                 }
             }
-
-            if (query.HasSubject != null) {
-                foreach (var sub in query.HasSubject) {
+            if (query.HasSubject != null)
+            {
+                foreach (var sub in query.HasSubject)
+                {
                     rsp = ApplyIncoming(rsp, graph, sub);
                 }
             }
-
-            if (query.Aggregates == null || query.Aggregates.Length == 0) {
+            if (query.Aggregates == null || query.Aggregates.Length == 0)
+            {
                 var responseTriples = rsp.Take(query.PageSize).ToArray();
                 var cont = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
                 var queryResponse = new ObjectQueryResponse
@@ -92,8 +95,10 @@ namespace Hexastore.Query
         private ObjectQueryResponse ApplyAggregates(IEnumerable<Triple> rsp, AggregateQuery[] aggregates)
         {
             var responses = new List<object>();
-            foreach (var aggregate in aggregates) {
-                switch (aggregate.Type) {
+            foreach (var aggregate in aggregates)
+            {
+                switch (aggregate.Type)
+                {
                     case AggregateType.Count:
                         var count = rsp.Count();
                         responses.Add(count);
@@ -114,7 +119,8 @@ namespace Hexastore.Query
         private IEnumerable<Triple> ApplyConstraint(IEnumerable<Triple> rsp, IGraph graph, string key, QueryUnit value)
         {
             var input = new JValue(value.Value);
-            switch (value.Operator) {
+            switch (value.Operator)
+            {
                 case "eq":
                     return rsp.Where(x => graph.Exists(x.Subject, key, TripleObject.FromData(value.Value.ToString())));
                 case "gt":
@@ -135,7 +141,8 @@ namespace Hexastore.Query
         private IEnumerable<Triple> CreateConstraint(IStoreGraph graph, string key, QueryUnit value, Triple continuation)
         {
             var input = new JValue(value.Value);
-            switch (value.Operator) {
+            switch (value.Operator)
+            {
                 case "eq":
                     return graph.PO(key, TripleObject.FromData(value.Value.ToString()), continuation);
                 case "gt":
@@ -152,7 +159,8 @@ namespace Hexastore.Query
         private Func<Triple, bool> Comparator(QueryUnit value)
         {
             var input = new JValue(value.Value);
-            switch (value.Operator) {
+            switch (value.Operator)
+            {
                 case "gt":
                     return (Triple x) =>
                     {
@@ -190,66 +198,140 @@ namespace Hexastore.Query
 
         private IEnumerable<Triple> ApplyOutgoing(IEnumerable<Triple> source, IStoreGraph graph, LinkQuery link)
         {
-            if (link == null) {
+            if (link == null)
+            {
                 return source;
             }
 
-            if (string.IsNullOrEmpty(link.Path)) {
+            if (string.IsNullOrEmpty(link.Path))
+            {
                 throw _storeErrors.PathEmpty;
             }
 
             var paths = link.Path.Split(LinkDelimiterArray);
-
+            var matchingTargets = new HashSet<string>();
+            var previouslySeenTargets = new HashSet<string>();
             var matched = source.Where(x =>
             {
-                IEnumerable<string> targets;
+                Dictionary<string, HashSet<string>> targets;
                 var segments = new Queue<string>(paths);
-                if (link.Level == 0) {
-                    targets = GetByLink(graph, new string[] { x.Subject }, segments, (gx, sx, seg) => GetSubjectLink(gx, sx, seg));
-                } else {
-                    targets = GetByLevel(graph, new string[] { x.Subject }, link.Level, true);
+                if (link.Level == 0)
+                {
+                    targets = GetByLink(graph, new string[] { x.Subject }, segments, GetSubjectLink, new HashSet<string>(), previouslySeenTargets);
                 }
-                // todo: use DP to remember nodes that have matched before
-                return targets.Any(t => SubjectMatch(t, graph, link.Target));
+                else
+                {
+                    targets = GetByLevel(graph, new string[] { x.Subject }, link.Level, true, new HashSet<string>(), previouslySeenTargets);
+                }
+                foreach (var target in targets)
+                {
+                    if (matchingTargets.Contains(target.Key))
+                    {
+                        foreach (var node in target.Value)
+                        {
+                            matchingTargets.Add(node);
+                            previouslySeenTargets.Add(node);
+                        }
+                        return true;
+                    }
+                    if (!SubjectMatch(target.Key, graph, link.Target))
+                    {
+                        previouslySeenTargets.Add(target.Key);
+                        foreach (var node in target.Value)
+                        {
+                            previouslySeenTargets.Add(node);
+                        }
+                        continue;
+                    };
+                    matchingTargets.Add(target.Key);
+                    previouslySeenTargets.Add(target.Key);
+                    foreach (var node in target.Value)
+                    {
+                        matchingTargets.Add(node);
+                        previouslySeenTargets.Add(node);
+                    }
+                    return true;
+                }
+
+                return false;
             });
             return matched;
         }
 
         private IEnumerable<Triple> ApplyIncoming(IEnumerable<Triple> source, IStoreGraph graph, LinkQuery link)
         {
-            if (link == null) {
+            if (link == null)
+            {
                 return source;
             }
 
-            if (string.IsNullOrEmpty(link.Path)) {
+            if (string.IsNullOrEmpty(link.Path))
+            {
                 throw _storeErrors.PathEmpty;
             }
 
             var paths = link.Path.Split(LinkDelimiterArray).Reverse();
-
+            var matchingTargets = new HashSet<string>();
+            var previouslySeenTargets = new HashSet<string>();
             var matched = source.Where(x =>
             {
-                IEnumerable<string> targets;
-
+                Dictionary<string, HashSet<string>> targets;
                 var segments = new Queue<string>(paths);
-                if (link.Level == 0) {
-                    targets = GetByLink(graph, new string[] { x.Subject }, segments, (gx, sx, seg) => GetObjectLink(gx, sx, seg));
-                } else {
-                    targets = GetByLevel(graph, new string[] { x.Subject }, link.Level, false);
+                if (link.Level == 0)
+                {
+                    targets = GetByLink(graph, new string[] { x.Subject }, segments, GetObjectLink, new HashSet<string>(), previouslySeenTargets);
                 }
-                return targets.Any(t => SubjectMatch(t, graph, link.Target));
+                else
+                {
+                    targets = GetByLevel(graph, new string[] { x.Subject }, link.Level, false, new HashSet<string>(), previouslySeenTargets);
+                }
+
+                foreach (var target in targets)
+                {
+                    if (matchingTargets.Contains(target.Key))
+                    {
+                        foreach (var node in target.Value)
+                        {
+                            matchingTargets.Add(node);
+                            previouslySeenTargets.Add(node);
+                        }
+                        return true;
+                    }
+                    if (!SubjectMatch(target.Key, graph, link.Target))
+                    {
+                        previouslySeenTargets.Add(target.Key);
+                        foreach (var node in target.Value)
+                        {
+                            previouslySeenTargets.Add(node);
+                        }
+                        continue;
+                    };
+                    matchingTargets.Add(target.Key);
+                    previouslySeenTargets.Add(target.Key);
+                    foreach (var node in target.Value)
+                    {
+                        matchingTargets.Add(node);
+                        previouslySeenTargets.Add(node);
+                    }
+                    return true;
+                }
+
+                return false;
             });
             return matched;
         }
 
         private bool SubjectMatch(string t, IStoreGraph graph, ObjectQueryModel target)
         {
-            if (target.Id != null) {
+            if (target.Id != null)
+            {
                 return t == target.Id;
             }
             var result = true;
-            foreach (var filter in target.Filter) {
-                switch (filter.Value.Operator) {
+            foreach (var filter in target.Filter)
+            {
+                switch (filter.Value.Operator)
+                {
                     case "eq":
                         result &= graph.Exists(t, filter.Key, TripleObject.FromData(filter.Value.Value.ToString()));
                         break;
@@ -268,34 +350,89 @@ namespace Hexastore.Query
             return result;
         }
 
-        private IEnumerable<string> GetByLink(IStoreGraph graph, IEnumerable<string> sources, Queue<string> segments, Func<IStoreGraph, string, string, IEnumerable<string>> f)
+        private Dictionary<string, HashSet<string>> GetByLink(IStoreGraph graph,
+            IEnumerable<string> sources,
+            Queue<string> segments, Func<IStoreGraph, string, string, IEnumerable<string>> f,
+            HashSet<string> nodesVisited,
+            HashSet<string> earlyExitNodes)
         {
-            if (segments.Count == 0) {
-                return sources;
-            } else {
+            if (segments.Count == 0)
+            {
+                var dict = new Dictionary<string, HashSet<string>>();
+                foreach (var source in sources)
+                {
+                    dict.Add(source, nodesVisited);
+                }
+                return dict;
+            }
+            else
+            {
+                var nodesVisitedClone = new HashSet<string>(nodesVisited);
                 var segment = segments.Dequeue();
                 IEnumerable<string> next = new List<string>();
-                foreach (var source in sources) {
-                    next = next.Concat(f(graph, source, segment));
+                var dict = new Dictionary<string, HashSet<string>>();
+                foreach (var source in sources)
+                {
+                    if (earlyExitNodes.Contains(source))
+                    {
+                        dict.Add(source, nodesVisited);
+                    }
+                    else
+                    {
+                        nodesVisitedClone.Add(source);
+                        next = next.Concat(f(graph, source, segment));
+                    }
                 }
-                return GetByLink(graph, next, segments, f);
+
+                if (next.Any())
+                {
+                    var nextNodes = GetByLink(graph, next, segments, f, nodesVisitedClone, earlyExitNodes);
+                    foreach (var node in nextNodes)
+                    {
+                        dict.Add(node.Key, node.Value);
+                    }
+                }
+
+                return dict;
             }
         }
 
-        private IEnumerable<string> GetByLevel(IStoreGraph graph, IEnumerable<string> sources, int level, bool isOutgoing)
+        private Dictionary<string, HashSet<string>> GetByLevel(IStoreGraph graph, IEnumerable<string> sources, int level, bool isOutgoing, HashSet<string> nodesVisited, HashSet<string> earlyExitNodes)
         {
-            if (level == 0) {
-                return Enumerable.Empty<string>();
+            if (level == 0)
+            {
+                return new Dictionary<string, HashSet<string>>();
             }
             IEnumerable<string> next = new List<string>();
-            foreach (var source in sources) {
-                var items = isOutgoing
-                    ? graph.S(source).Where(x => x.Object.IsID).Select(y => y.Object.Id).Distinct()
-                    : graph.O(source).Select(y => y.Subject).Distinct();
-                var targets = GetByLevel(graph, items, level - 1, isOutgoing);
-                next = next.Concat(targets);
+            var nodesVisitedClone = new HashSet<string>(nodesVisited);
+            var dict = new Dictionary<string, HashSet<string>>();
+            foreach (var source in sources)
+            {
+                if (!dict.ContainsKey(source))
+                {
+                    dict.Add(source, nodesVisited);
+                }
+                if (!earlyExitNodes.Contains(source))
+                {
+                    nodesVisitedClone.Add(source);
+                    var items = isOutgoing
+                        ? graph.S(source).Where(x => x.Object.IsID).Select(y => y.Object.Id).Distinct()
+                        : graph.O(source).Select(y => y.Subject).Distinct();
+
+                    // prevent revisiting nodes when circular references exist
+                    var unvisited = items.Where(i => !nodesVisitedClone.Contains(i));
+                    var targets = GetByLevel(graph, unvisited, level - 1, isOutgoing, nodesVisitedClone, earlyExitNodes);
+                    foreach (var target in targets)
+                    {
+                        if (!dict.ContainsKey(target.Key))
+                        {
+                            dict.Add(target.Key, target.Value);
+                        }
+                    }
+                }
             }
-            return sources.Concat(next).Distinct();
+
+            return dict; 
         }
 
         private IEnumerable<string> GetSubjectLink(IStoreGraph graph, string source, string segment)
