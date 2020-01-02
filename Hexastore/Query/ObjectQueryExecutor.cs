@@ -213,7 +213,7 @@ namespace Hexastore.Query
             var previouslySeenTargets = new HashSet<string>();
             var matched = source.Where(x =>
             {
-                IDictionary<string, ISet<string>> targets;
+                Dictionary<string, HashSet<string>> targets;
                 var segments = new Queue<string>(paths);
                 if (link.Level == 0)
                 {
@@ -275,7 +275,7 @@ namespace Hexastore.Query
             var previouslySeenTargets = new HashSet<string>();
             var matched = source.Where(x =>
             {
-                IDictionary<string, ISet<string>> targets;
+                Dictionary<string, HashSet<string>> targets;
                 var segments = new Queue<string>(paths);
                 if (link.Level == 0)
                 {
@@ -350,15 +350,15 @@ namespace Hexastore.Query
             return result;
         }
 
-        private IDictionary<string, ISet<string>> GetByLink(IStoreGraph graph,
+        private Dictionary<string, HashSet<string>> GetByLink(IStoreGraph graph,
             IEnumerable<string> sources,
             Queue<string> segments, Func<IStoreGraph, string, string, IEnumerable<string>> f,
-            ISet<string> nodesVisited,
-            ISet<string> earlyExitNodes)
+            HashSet<string> nodesVisited,
+            HashSet<string> earlyExitNodes)
         {
             if (segments.Count == 0)
             {
-                var dict = new Dictionary<string, ISet<string>>();
+                var dict = new Dictionary<string, HashSet<string>>();
                 foreach (var source in sources)
                 {
                     dict.Add(source, nodesVisited);
@@ -370,7 +370,7 @@ namespace Hexastore.Query
                 var nodesVisitedClone = new HashSet<string>(nodesVisited);
                 var segment = segments.Dequeue();
                 IEnumerable<string> next = new List<string>();
-                var dict = new Dictionary<string, ISet<string>>();
+                var dict = new Dictionary<string, HashSet<string>>();
                 foreach (var source in sources)
                 {
                     if (earlyExitNodes.Contains(source))
@@ -397,15 +397,15 @@ namespace Hexastore.Query
             }
         }
 
-        private IDictionary<string, ISet<string>> GetByLevel(IStoreGraph graph, IEnumerable<string> sources, int level, bool isOutgoing, ISet<string> nodesVisited, ISet<string> earlyExitNodes)
+        private Dictionary<string, HashSet<string>> GetByLevel(IStoreGraph graph, IEnumerable<string> sources, int level, bool isOutgoing, HashSet<string> nodesVisited, HashSet<string> earlyExitNodes)
         {
             if (level == 0)
             {
-                return new Dictionary<string, ISet<string>>();
+                return new Dictionary<string, HashSet<string>>();
             }
             IEnumerable<string> next = new List<string>();
             var nodesVisitedClone = new HashSet<string>(nodesVisited);
-            var dict = new Dictionary<string, ISet<string>>();
+            var dict = new Dictionary<string, HashSet<string>>();
             foreach (var source in sources)
             {
                 if (!dict.ContainsKey(source))
