@@ -12,7 +12,7 @@ namespace Hexastore.ScaleConsole
     {
         static void Main(string[] args)
         {
-            FlatModelTest.RunTest(appCount: 5, deviceCount: 100, devicePropertyCount: 1000, sendCount: 10, senderThreadCount: 10);
+            FlatModelTest.RunTest(appCount: 1, deviceCount: 300000, devicePropertyCount: 3, sendCount: 10, senderThreadCount: 10);
         }
     }
 }
