@@ -98,7 +98,7 @@ namespace Hexastore.Processor
                 }
             } catch (Exception e) {
                 _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 

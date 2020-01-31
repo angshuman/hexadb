@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
 using Hexastore.Graph;
@@ -11,26 +12,31 @@ namespace Hexastore.Rocks
     public class RocksGraphProvider : IGraphProvider, IDisposable
     {
         private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
-        private readonly RocksDb _db;
-        ILogger _logger;
+        private readonly ConcurrentDictionary<string, RocksDb> _dbs = new ConcurrentDictionary<string, RocksDb>(StringComparer.Ordinal);
+        private readonly ILogger _logger;
+        private readonly string _rootPath = null;
+        private readonly DbOptions _dbOptions = new DbOptions().SetCreateIfMissing(true);
 
 
         public RocksGraphProvider(ILogger<RocksGraphProvider> logger, string path = null, DbOptions optionInput = null)
         {
             _logger = logger;
-            string dataPath;
             if (path == null) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    dataPath = "/var/data/hexastore";
+                    _rootPath = "/var/data/hexastore";
                 } else {
-                    dataPath = "C:\\data\\hexastore";
+                    _rootPath = "C:\\data\\hexastore";
                 }
             } else {
-                dataPath = path;
+                _rootPath = path;
             }
-            Directory.CreateDirectory(dataPath);
-            var options = optionInput ?? new DbOptions()
-                .SetCreateIfMissing(true);
+            Directory.CreateDirectory(_rootPath);
+
+            if (optionInput != null)
+            {
+                _dbOptions = optionInput;
+            }
+                
             /*
             .SetAllowConcurrentMemtableWrite(true)
             .SetAllowMmapReads(true)
@@ -39,22 +45,22 @@ namespace Hexastore.Rocks
             .IncreaseParallelism(6)
             .SetCompression(Compression.No);
             */
-
-            _db = RocksDb.Open(options, dataPath);
-            _logger.LogInformation($"created rocksdb at {dataPath}");
         }
+
 
         public bool ContainsGraph(string id, GraphType type)
         {
             var key = MakeKey(id, type);
-            return _db.Get(key) == "1";
+            var db = GetOrOpenDB(id);
+            return db.Get(key) == "1";
         }
 
         public IStoreGraph CreateGraph(string id, GraphType type)
         {
             var key = MakeKey(id, type);
-            _db.Put(key, "1");
-            return new RocksGraph(key, _db);
+            var db = GetOrOpenDB(id);
+            db.Put(key, "1");
+            return new RocksGraph(key, db);
         }
 
         public bool DeleteGraph(string id, GraphType type)
@@ -62,38 +68,78 @@ namespace Hexastore.Rocks
             if (!ContainsGraph(id, type)) {
                 return false;
             }
-            _db.Remove(MakeKey(id, type));
+            GetOrOpenDB(id).Remove(MakeKey(id, type));
             return true;
         }
 
-        public void WriteKey(string key, string value)
+        public void WriteKey(string id, string key, string value)
         {
-            _db.Put(key, value, null, _writeOptions);
+            GetOrOpenDB(id).Put(key, value, null, _writeOptions);
         }
 
-        public string ReadKey(string key)
+        public string ReadKey(string id, string key)
         {
-            return _db.Get(key);
+            return GetOrOpenDB(id).Get(key);
         }
 
         public void Dispose()
         {
             _logger.LogInformation("disposing rocksdb");
-            _db.Dispose();
+            
+            foreach (var pair in _dbs)
+            {
+                pair.Value.Dispose();
+            }
+
+            _dbs.Clear();
         }
 
         public IStoreGraph GetGraph(string id, GraphType type)
         {
             if (ContainsGraph(id, type)) {
                 string key = MakeKey(id, type);
-                return new RocksGraph(key, _db);
+                return new RocksGraph(key, GetOrOpenDB(id));
             }
             throw new FileNotFoundException();
         }
 
-        private string MakeKey(string id, GraphType type)
+        private static string MakeKey(string id, GraphType type)
         {
-            return $"{(int)type}-{id}"; ;
+            return $"{(int)type}"; ;
+        }
+
+        private RocksDb GetOrOpenDB(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("message", nameof(id));
+            }
+
+            RocksDb db = null;
+
+            if (!_dbs.TryGetValue(id, out db))
+            {
+                // Allow only one db to be created at a time to avoid conflicts
+                lock (_dbs)
+                {
+                    // Double check lock
+                    if (!_dbs.TryGetValue(id, out db))
+                    {
+                        var dbPath = Path.Combine(_rootPath, id);
+
+                        db = RocksDb.Open(_dbOptions, dbPath);
+                        _logger.LogInformation($"created rocksdb at {dbPath}");
+                        
+                        if (!_dbs.TryAdd(id, db))
+                        {
+                            // this should never happen
+                            throw new Exception("unable to add db");
+                        }
+                    }
+                }
+            }
+
+            return db;
         }
     }
 }
