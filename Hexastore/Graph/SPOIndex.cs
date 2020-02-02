@@ -52,18 +52,37 @@ namespace Hexastore.Graph
 
             seen.Add(id);
             foreach (var p in po) {
-                var toList = new List<JToken>();
+                List<JToken> toList = null;
                 foreach (var o in p) {
-                    if (o.IsID) {
-                        var obj = ToJson(o.ToValue(), seen);
-                        toList.Add(obj);
-                    } else {
-                        toList.Add(o.ToTypedJSON());
+                    if (o.Index == -1)
+                    {
+                        if (o.IsID)
+                        {
+                            var obj = ToJson(o.ToValue(), seen);
+                            rsp[p.Key] = obj;
+                        }
+                        else
+                        {
+                            rsp[p.Key] = o.ToTypedJSON();
+                        }
+                    } else
+                    {
+                        if (toList == null)
+                        {
+                            toList = new List<JToken>();
+                        }
+                        if (o.IsID)
+                        {
+                            var obj = ToJson(o.ToValue(), seen);
+                            toList.Add(obj);
+                        }
+                        else
+                        {
+                            toList.Add(o.ToTypedJSON());
+                        }
                     }
                 }
-                if (toList.Count == 1) {
-                    rsp[p.Key] = toList.First();
-                } else {
+                if (toList != null) {
                     rsp[p.Key] = new JArray(toList);
                 }
             }
