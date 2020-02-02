@@ -16,7 +16,7 @@ namespace Hexastore.ScaleConsole
     {
         private static readonly Random _random = new Random(234234);
 
-        public static void RunTest(int appCount, int deviceCount, int devicePropertyCount, int sendCount, int senderThreadCount)
+        public static async Task RunTest(int appCount, int deviceCount, int devicePropertyCount, int sendCount, int senderThreadCount)
         {
             var apps = new List<string>(appCount);
             var deviceIds = new List<string>(deviceCount);
@@ -71,28 +71,28 @@ namespace Hexastore.ScaleConsole
 
                 for (var i = 0; i < senderThreadCount; i++)
                 {
-                    tasks.Add(Task.Run(() => RunSender(storeProcessor, sendQueue)));
+                    tasks.Add(Task.Run(async () => await RunSender(storeProcessor, sendQueue)));
                 }
 
-                Task.WhenAll(tasks).Wait();
+                await Task.WhenAll(tasks);
 
                 Console.WriteLine($"Completed in {timer.Elapsed}");
             }
         }
 
-        private static void RunSender(StoreProcessor storeProcessor, ConcurrentQueue<TestMessage> sendQueue)
+        private static async Task RunSender(StoreProcessor storeProcessor, ConcurrentQueue<TestMessage> sendQueue)
         {
             while (sendQueue.TryDequeue(out var message))
             {
-                SendEvent(storeProcessor, message);
+                await SendEvent(storeProcessor, message);
             }
         }
 
-        private static void SendEvent(StoreProcessor storeProcessor, TestMessage message)
+        private static async Task SendEvent(StoreProcessor storeProcessor, TestMessage message)
         {
             var points = GetPropertyValues(message.PropertyNames, _random);
             var json = JsonGenerator.GenerateTelemetry(message.Device, points);
-            storeProcessor.PatchJson(message.App, json);
+            await storeProcessor.PatchJson2(message.App, json);
         }
 
         private static Dictionary<string, double> GetPropertyValues(List<string> devicePropertyNames, Random random)

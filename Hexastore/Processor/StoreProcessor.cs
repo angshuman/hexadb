@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Hexastore.Web.Errors;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Hexastore.Processor
 {
@@ -33,33 +35,46 @@ namespace Hexastore.Processor
 
         public void Assert(string storeId, JToken input, bool strict)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
-                try {
+            using (var op = _storeOperationFactory.Write(storeId))
+            {
+                try
+                {
                     JArray value;
-                    if (input is JObject) {
+                    if (input is JObject)
+                    {
                         value = new JArray(input);
-                    } else if (input is JArray) {
+                    }
+                    else if (input is JArray)
+                    {
                         value = (JArray)input;
-                    } else {
+                    }
+                    else
+                    {
                         throw _storeErrors.InvalidType;
                     }
 
                     var (data, _, _) = GetSetGraphs(storeId);
-                    foreach (var item in value) {
-                        if (!(item is JObject)) {
+                    foreach (var item in value)
+                    {
+                        if (!(item is JObject))
+                        {
                             throw _storeErrors.InvalidItem;
                         }
                         var jobj = (JObject)item;
-                        if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String) {
+                        if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String)
+                        {
                             throw _storeErrors.MustHaveId;
                         }
-                        if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
+                        if (strict && data.S(jobj[Constants.ID].ToString()).Any())
+                        {
                             throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", _storeErrors.AlreadyContainsIdError);
                         }
                         var graph = TripleConverter.FromJson((JObject)item);
                         data.Assert(graph);
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     _logger.LogError("Assert failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                     throw e;
                 }
@@ -69,26 +84,37 @@ namespace Hexastore.Processor
         public void PatchJson(string storeId, JToken token)
         {
             JArray inputs;
-            if (token is JObject) {
+            if (token is JObject)
+            {
                 inputs = new JArray() { token };
-            } else if (token is JArray) {
+            }
+            else if (token is JArray)
+            {
                 inputs = token as JArray;
-            } else {
+            }
+            else
+            {
                 throw new InvalidOperationException("Invalid patch");
             }
 
-            try {
-                foreach (var input in inputs) {
-                    if (!(input is JObject)) {
+            try
+            {
+                foreach (var input in inputs)
+                {
+                    if (!(input is JObject))
+                    {
                         throw new InvalidOperationException("Invalid patch");
                     }
                     var patch = TripleConverter.FromJson(input as JObject);
                     var (data, _, _) = GetSetGraphs(storeId);
-                    using (var op = _storeOperationFactory.Write(storeId)) {
+                    using (var op = _storeOperationFactory.Write(storeId))
+                    {
                         var retract = new List<Triple>();
-                        foreach (var triple in patch) {
+                        foreach (var triple in patch)
+                        {
                             var t = data.SPI(triple.Subject, triple.Predicate, triple.Object.Index);
-                            if (t != null) {
+                            if (t != null)
+                            {
                                 retract.Add(t);
                             }
                         }
@@ -96,28 +122,129 @@ namespace Hexastore.Processor
                         data.BatchRetractAssert(retract, assert);
                     }
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                 throw;
             }
         }
 
+        private static readonly SemaphoreSlim _sem = new SemaphoreSlim(1, 1);
+
+        public async Task PatchJson2(string storeId, JToken token)
+        {
+            var inputs = new List<JObject>(1);
+            var inputObj = token as JObject;
+
+            if (inputObj != null)
+            {
+                inputs.Add(inputObj);
+            }
+            else if (token is JArray)
+            {
+                foreach (var item in (JArray)token)
+                {
+                    inputs.Add((JObject)item);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid patch");
+            }
+
+            try
+            {
+                var retract = new List<Triple>();
+                var assert = new List<Triple>();
+
+                for (var i=0; i < inputs.Count; i++)
+                {
+                    var jObj = inputs[i];
+                    await ProcessJObject(storeId, retract, assert, jObj);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw;
+            }
+            finally
+            {
+                _sem.Release();
+            }
+        }
+
+        private async Task ProcessJObject(string storeId, List<Triple> retract, List<Triple> assert, JObject jObj)
+        {
+            var patch = (List<Triple>)TripleConverter.FromJson(jObj);
+            var (data, _, _) = GetSetGraphs(storeId);
+
+            retract.Clear();
+            assert.Clear();
+
+            BuildAsserts(assert, patch);
+
+            await _sem.WaitAsync();
+
+            //using (var op = _storeOperationFactory.Write(storeId))
+            //{
+            BuildRetracts(retract, patch, data);
+
+            data.BatchRetractAssert(retract, assert);
+            //}
+        }
+
+        private static void BuildAsserts(List<Triple> assert, List<Triple> patch)
+        {
+            for (var i = 0; i < patch.Count; i++)
+            {
+                var triple = patch[i];
+
+                if (!triple.Object.IsNull)
+                {
+                    assert.Add(triple);
+                }
+            }
+        }
+
+        private static void BuildRetracts(List<Triple> retract, List<Triple> patch, IStoreGraph data)
+        {
+            for (var i = 0; i < patch.Count; i++)
+            {
+                var triple = patch[i];
+
+                var t = data.SPI(triple.Subject, triple.Predicate, triple.Object.Index);
+                if (t != null)
+                {
+                    retract.Add(t);
+                }
+            }
+        }
+
         public void PatchTriple(string storeId, JObject input)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
-                try {
+            using (var op = _storeOperationFactory.Write(storeId))
+            {
+                try
+                {
                     var (data, _, _) = GetSetGraphs(storeId);
                     var remove = input["remove"];
-                    if (remove != null && remove is JObject) {
+                    if (remove != null && remove is JObject)
+                    {
                         var triples = TripleConverter.FromJson((JObject)remove);
+
                         data.Retract(triples);
                     }
                     var add = input["add"];
-                    if (add != null && add is JObject) {
+                    if (add != null && add is JObject)
+                    {
                         var triples = TripleConverter.FromJson((JObject)add);
                         data.Assert(triples);
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                     throw e;
                 }
@@ -126,25 +253,36 @@ namespace Hexastore.Processor
 
         public void Delete(string storeId, JToken token)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
+            using (var op = _storeOperationFactory.Write(storeId))
+            {
                 JArray inputs;
-                try {
-                    if (token is JObject) {
+                try
+                {
+                    if (token is JObject)
+                    {
                         inputs = new JArray() { token };
-                    } else if (token is JArray) {
+                    }
+                    else if (token is JArray)
+                    {
                         inputs = token as JArray;
-                    } else {
+                    }
+                    else
+                    {
                         throw new InvalidOperationException("Invalid delete");
                     }
-                    foreach (var input in inputs) {
-                        if (!(input is JObject)) {
+                    foreach (var input in inputs)
+                    {
+                        if (!(input is JObject))
+                        {
                             throw new InvalidOperationException("Invalid delete");
                         }
                         var (data, _, _) = GetSetGraphs(storeId);
                         var triples = TripleConverter.FromJson(input as JObject);
                         data.Retract(triples);
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     _logger.LogError("Delete failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                 }
             }
@@ -152,7 +290,8 @@ namespace Hexastore.Processor
 
         public void AssertMeta(string storeId, JObject value)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
+            using (var op = _storeOperationFactory.Write(storeId))
+            {
 
                 var graph = TripleConverter.FromJson(value);
                 var (data, infer, meta) = GetSetGraphs(storeId);
@@ -163,7 +302,8 @@ namespace Hexastore.Processor
 
         public JObject GetSet(string storeId)
         {
-            using (var op = _storeOperationFactory.Write(storeId)) {
+            using (var op = _storeOperationFactory.Write(storeId))
+            {
                 var (data, _, _) = GetSetGraphs(storeId);
                 return TripleConverter.ToJson(data);
             }
@@ -179,7 +319,8 @@ namespace Hexastore.Processor
         {
             var (data, _, _) = GetSetGraphs(storeId);
             var triples = GraphOperator.Expand(data, subject, level, expand).ToList();
-            if (triples.Count() == 0) {
+            if (triples.Count() == 0)
+            {
                 return null;
             }
             var rspGraph = new SPOIndex();
@@ -203,12 +344,16 @@ namespace Hexastore.Processor
 
         public JObject Query(string storeId, JObject query, string[] expand, int level)
         {
-            try {
+            try
+            {
                 var (data, _, _) = GetSetGraphs(storeId);
                 ObjectQueryModel queryModel;
-                try {
+                try
+                {
                     queryModel = query.ToObject<ObjectQueryModel>();
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
                 }
 
@@ -226,7 +371,9 @@ namespace Hexastore.Processor
                     aggregates = result.Aggregates
                 };
                 return JObject.FromObject(response);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
                 throw e;
             }

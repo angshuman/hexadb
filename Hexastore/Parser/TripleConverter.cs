@@ -61,7 +61,7 @@ namespace Hexastore.Parser
             return new JObject { ["@graph"] = rsp };
         }
 
-        private static void AddObject(IList<Triple> graph, string sourceId, string p, JObject obj, int? index)
+        private static void AddObject(List<Triple> graph, string sourceId, string p, JObject obj, int? index)
         {
             if (!obj.ContainsKey(Constants.ID)) {
                 throw new InvalidOperationException("Cannot find id");
@@ -80,7 +80,7 @@ namespace Hexastore.Parser
             }
         }
 
-        private static void AddValue(IList<Triple> graph, string s, string p, JToken token, int? index)
+        private static void AddValue(List<Triple> graph, string s, string p, JToken token, int? index)
         {
             switch (token.Type) {
                 case JTokenType.Object:

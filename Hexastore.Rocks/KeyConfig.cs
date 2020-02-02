@@ -161,8 +161,6 @@ namespace Hexastore.Rocks
                     return -1;
                 } else if (firstByte > secondByte) {
                     return 1;
-                } else {
-                    continue;
                 }
             }
             if (first.Length == second.Length) {
