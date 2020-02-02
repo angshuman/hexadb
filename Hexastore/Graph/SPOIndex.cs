@@ -54,30 +54,21 @@ namespace Hexastore.Graph
             foreach (var p in po) {
                 List<JToken> toList = null;
                 foreach (var o in p) {
-                    if (o.Index == -1)
-                    {
-                        if (o.IsID)
-                        {
+                    if (o.Index == -1) {
+                        if (o.IsID) {
                             var obj = ToJson(o.ToValue(), seen);
                             rsp[p.Key] = obj;
-                        }
-                        else
-                        {
+                        } else {
                             rsp[p.Key] = o.ToTypedJSON();
                         }
-                    } else
-                    {
-                        if (toList == null)
-                        {
+                    } else {
+                        if (toList == null) {
                             toList = new List<JToken>();
                         }
-                        if (o.IsID)
-                        {
+                        if (o.IsID) {
                             var obj = ToJson(o.ToValue(), seen);
                             toList.Add(obj);
-                        }
-                        else
-                        {
+                        } else {
                             toList.Add(o.ToTypedJSON());
                         }
                     }
@@ -111,7 +102,7 @@ namespace Hexastore.Graph
             IDictionary<string, IList<TripleObject>> po;
             if (_spo.TryGetValue(s, out po)) {
                 foreach (var p in po) {
-                    yield return new PredicateGrouping(p);  
+                    yield return new PredicateGrouping(p);
                 }
             }
         }
