@@ -227,5 +227,168 @@ namespace Hexastore.Test
             var expectedString = TripleConverter.FromJson(JObject.FromObject(expected)).ToArray();
             CollectionAssert.AreEquivalent(rspString, expectedString);
         }
+
+        [TestMethod]
+        public void Patch_With_Triple_Returns()
+        {
+            var doc = new
+            {
+                id = "100",
+                name = "Device 100",
+                otherName = "Other Name",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    },
+                    new
+                    {
+                        id = "nested1",
+                        name = "Nested 1"
+                    },
+                    new
+                    {
+                        id = "nested2",
+                        name = "Nested 2"
+                    },
+                    new
+                    {
+                        id = "nested3",
+                        name = "Nested 3"
+                    }
+                }
+            };
+
+            var patch = new
+            {
+                remove = new
+                {
+                    id = "100",
+                    otherName = "Other Name",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested1",
+                        }
+                    }
+                },
+                add = new
+                {
+                    id = "100",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested4",
+                            name = "Nested 4"
+                        }
+                    }
+                }
+            };
+
+            var expected = new
+            {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    },
+                    new
+                    {
+                        id = "nested2",
+                        name = "Nested 2"
+                    },
+                    new
+                    {
+                        id = "nested3",
+                        name = "Nested 3"
+                    },
+                    new
+                    {
+                        id = "nested4",
+                        name = "Nested 4"
+                    }
+                }
+            };
+
+            StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
+            StoreProcessor.PatchTriple("app3", JObject.FromObject(patch));
+
+            var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
+            var rspString = TripleConverter.FromJson(rsp).ToArray();
+            var expectedString = TripleConverter.FromJson(JObject.FromObject(expected)).ToArray();
+            CollectionAssert.AreEquivalent(rspString, expectedString);
+        }
+
+        [TestMethod]
+        public void Patch_Single_Item_Array_With_Triple_Returns()
+        {
+            var doc = new
+            {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    }
+                }
+            };
+
+            var patch = new
+            {
+                remove = new
+                {
+                    id = "100",
+                    otherName = "Other Name",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested0",
+                        }
+                    }
+                },
+                add = new
+                {
+                    id = "100",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested4",
+                            name = "Nested 4"
+                        }
+                    }
+                }
+            };
+
+            var expected = new
+            {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested4",
+                        name = "Nested 4"
+                    }
+                }
+            };
+
+            StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
+            StoreProcessor.PatchTriple("app3", JObject.FromObject(patch));
+
+            var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
+            var rspString = TripleConverter.FromJson(rsp).ToArray();
+            var expectedString = TripleConverter.FromJson(JObject.FromObject(expected)).ToArray();
+            CollectionAssert.AreEquivalent(rspString, expectedString);
+        }
     }
 }

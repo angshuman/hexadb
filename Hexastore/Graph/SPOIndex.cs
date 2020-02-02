@@ -86,12 +86,13 @@ namespace Hexastore.Graph
                 z.Add(tz);
             }
         }
+
         public IEnumerable<IGrouping<string, TripleObject>> GetSubjectGroupings(string s)
         {
             IDictionary<string, IList<TripleObject>> po;
             if (_spo.TryGetValue(s, out po)) {
                 foreach (var p in po) {
-                    yield return new PredicateGrouping(p);
+                    yield return new PredicateGrouping(p);  
                 }
             }
         }
