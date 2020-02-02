@@ -72,12 +72,10 @@ namespace Hexastore.Web.Controllers
         public IActionResult Predicates(string storeId)
         {
             _logger.LogInformation(LoggingEvents.ControllerPredicates, $"PREDICATES: store {storeId}");
-            try
-            {
+            try {
                 var rsp = _storeProcessor.GetPredicates(storeId);
                 return Ok(rsp);
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 return HandleException(e);
             }
         }
@@ -123,7 +121,6 @@ namespace Hexastore.Web.Controllers
                         };
                         await SendEvent(storeId, e);
                         _logger.LogInformation("Batch ingestion", batch.Count);
-
                     }
                     return Accepted();
                 }

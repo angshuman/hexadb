@@ -18,8 +18,7 @@ namespace Hexastore.Test
         {
             _items = new object[10];
             foreach (var i in Enumerable.Range(0, 10)) {
-                dynamic item = new
-                {
+                dynamic item = new {
                     id = i.ToString(),
                     name = $"name{i}",
                     age = i * 5
@@ -29,13 +28,11 @@ namespace Hexastore.Test
 
             StoreProcessor.Assert("app1", JToken.FromObject(_items), false);
 
-            dynamic item1 = new
-            {
+            dynamic item1 = new {
                 id = "100",
                 name = "name100",
                 age = 20,
-                contains = new
-                {
+                contains = new {
                     id = "200",
                     name = "name200",
                     values = new dynamic[] {
@@ -54,13 +51,11 @@ namespace Hexastore.Test
                 }
             };
 
-            dynamic item2 = new
-            {
+            dynamic item2 = new {
                 id = "500",
                 name = "name500",
                 age = 20,
-                contains = new
-                {
+                contains = new {
                     id = "600",
                     name = "name600",
                     values = new dynamic[] {
@@ -102,12 +97,10 @@ namespace Hexastore.Test
         [TestMethod]
         public void Json_Read_Write_Relationship_Returns()
         {
-            dynamic item = new
-            {
+            dynamic item = new {
                 id = "100",
                 name = "name100",
-                contains = new
-                {
+                contains = new {
                     id = "200",
                     name = "name200",
                     values = new dynamic[] {
@@ -134,12 +127,10 @@ namespace Hexastore.Test
         [TestMethod]
         public void Patch_With_Relationship_Returns()
         {
-            var patch = new
-            {
+            var patch = new {
                 id = "100",
                 name = (string)null,
-                contains = new
-                {
+                contains = new {
                     id = "200",
                     name = "name202",
                     values = new object[] {
@@ -155,12 +146,10 @@ namespace Hexastore.Test
 
             StoreProcessor.PatchJson("app2", JObject.FromObject(patch));
             var rsp = StoreProcessor.GetSubject("app2", "100", null, 3);
-            var expected = new
-            {
+            var expected = new {
                 id = "100",
                 age = 20,
-                contains = new
-                {
+                contains = new {
                     id = "200",
                     name = "name202",
                     values = new object[] {
@@ -181,12 +170,10 @@ namespace Hexastore.Test
         [TestMethod]
         public void Patch_With_Values_Returns()
         {
-            var doc = new
-            {
+            var doc = new {
                 id = "100",
                 name = "Device 100",
-                data = new
-                {
+                data = new {
                     temp = 50,
                     humidity = 70,
                     pressure = 1001.02,
@@ -194,23 +181,19 @@ namespace Hexastore.Test
                 }
             };
 
-            var patch = new
-            {
+            var patch = new {
                 id = "100",
-                data = new
-                {
+                data = new {
                     temp = 55,
                     pressure = 1001.03,
                     region = "seattle/1"
                 }
             };
 
-            var expected = new
-            {
+            var expected = new {
                 id = "100",
                 name = "Device 100",
-                data = new
-                {
+                data = new {
                     id = "100#data",
                     temp = 55,
                     humidity = 70,
@@ -221,6 +204,159 @@ namespace Hexastore.Test
 
             StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
             StoreProcessor.PatchJson("app3", JObject.FromObject(patch));
+
+            var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
+            var rspString = TripleConverter.FromJson(rsp).ToArray();
+            var expectedString = TripleConverter.FromJson(JObject.FromObject(expected)).ToArray();
+            CollectionAssert.AreEquivalent(rspString, expectedString);
+        }
+
+        [TestMethod]
+        public void Patch_With_Triple_Returns()
+        {
+            var doc = new {
+                id = "100",
+                name = "Device 100",
+                otherName = "Other Name",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    },
+                    new
+                    {
+                        id = "nested1",
+                        name = "Nested 1"
+                    },
+                    new
+                    {
+                        id = "nested2",
+                        name = "Nested 2"
+                    },
+                    new
+                    {
+                        id = "nested3",
+                        name = "Nested 3"
+                    }
+                }
+            };
+
+            var patch = new {
+                remove = new {
+                    id = "100",
+                    otherName = "Other Name",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested1",
+                        }
+                    }
+                },
+                add = new {
+                    id = "100",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested4",
+                            name = "Nested 4"
+                        }
+                    }
+                }
+            };
+
+            var expected = new {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    },
+                    new
+                    {
+                        id = "nested2",
+                        name = "Nested 2"
+                    },
+                    new
+                    {
+                        id = "nested3",
+                        name = "Nested 3"
+                    },
+                    new
+                    {
+                        id = "nested4",
+                        name = "Nested 4"
+                    }
+                }
+            };
+
+            StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
+            StoreProcessor.PatchTriple("app3", JObject.FromObject(patch));
+
+            var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
+            var rspString = TripleConverter.FromJson(rsp).ToArray();
+            var expectedString = TripleConverter.FromJson(JObject.FromObject(expected)).ToArray();
+            CollectionAssert.AreEquivalent(rspString, expectedString);
+        }
+
+        [TestMethod]
+        public void Patch_Single_Item_Array_With_Triple_Returns()
+        {
+            var doc = new {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested0",
+                        name = "Nested 0"
+                    }
+                }
+            };
+
+            var patch = new {
+                remove = new {
+                    id = "100",
+                    otherName = "Other Name",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested0",
+                        }
+                    }
+                },
+                add = new {
+                    id = "100",
+                    contains = new object[]
+                    {
+                        new
+                        {
+                            id = "nested4",
+                            name = "Nested 4"
+                        }
+                    }
+                }
+            };
+
+            var expected = new {
+                id = "100",
+                name = "Device 100",
+                contains = new object[] {
+                    new
+                    {
+                        id = "nested4",
+                        name = "Nested 4"
+                    }
+                }
+            };
+
+            StoreProcessor.Assert("app3", JObject.FromObject(doc), false);
+            StoreProcessor.PatchTriple("app3", JObject.FromObject(patch));
 
             var rsp = StoreProcessor.GetSubject("app3", "100", null, 3);
             var rspString = TripleConverter.FromJson(rsp).ToArray();

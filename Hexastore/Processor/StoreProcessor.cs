@@ -110,12 +110,34 @@ namespace Hexastore.Processor
                     var remove = input["remove"];
                     if (remove != null && remove is JObject) {
                         var triples = TripleConverter.FromJson((JObject)remove);
-                        data.Retract(triples);
+                        var toRemove = new List<Triple>();
+                        foreach (var item in triples) {
+                            if (item.Object.Index == -1) {
+                                toRemove.Add(item);
+                            } else {
+                                var arrayMatches = data.SP(item.Subject, item.Predicate).Where(x => x.Object.Value == item.Object.Value && x.Object.IsID == item.Object.IsID);
+                                toRemove.AddRange(arrayMatches);
+                            }
+                        }
+                        data.Retract(toRemove);
                     }
                     var add = input["add"];
                     if (add != null && add is JObject) {
                         var triples = TripleConverter.FromJson((JObject)add);
-                        data.Assert(triples);
+                        var toAssert = new List<Triple>();
+                        foreach (var item in triples) {
+                            if (item.Object.Index == -1) {
+                                toAssert.Add(item);
+                            } else {
+                                var arrayLast = data.SP(item.Subject, item.Predicate).LastOrDefault();
+                                if (arrayLast != null) {
+                                    toAssert.Add(new Triple(item.Subject, item.Predicate, new TripleObject(item.Object.Value, item.Object.IsID, item.Object.TokenType, arrayLast.Object.Index + 1)));
+                                } else {
+                                    toAssert.Add(new Triple(item.Subject, item.Predicate, new TripleObject(item.Object.Value, item.Object.IsID, item.Object.TokenType, 0)));
+                                }
+                            }
+                        }
+                        data.Assert(toAssert);
                     }
                 } catch (Exception e) {
                     _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
