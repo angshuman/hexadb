@@ -125,16 +125,24 @@ namespace Hexastore.Processor
                     if (add != null && add is JObject) {
                         var triples = TripleConverter.FromJson((JObject)add);
                         var toAssert = new List<Triple>();
+                        var spCounter = new Dictionary<string, Dictionary<string, int>>();
+
                         foreach (var item in triples) {
                             if (item.Object.Index == -1) {
                                 toAssert.Add(item);
                             } else {
-                                var arrayLast = data.SP(item.Subject, item.Predicate).LastOrDefault();
-                                if (arrayLast != null) {
-                                    toAssert.Add(new Triple(item.Subject, item.Predicate, new TripleObject(item.Object.Value, item.Object.IsID, item.Object.TokenType, arrayLast.Object.Index + 1)));
-                                } else {
-                                    toAssert.Add(new Triple(item.Subject, item.Predicate, new TripleObject(item.Object.Value, item.Object.IsID, item.Object.TokenType, 0)));
+                                if (!spCounter.ContainsKey(item.Subject) || !spCounter[item.Subject].ContainsKey(item.Predicate)) {
+                                    if (!spCounter.ContainsKey(item.Subject)) {
+                                        spCounter[item.Subject] = new Dictionary<string, int>();
+                                    }
+                                    if (!spCounter[item.Subject].ContainsKey(item.Predicate)) {
+                                        spCounter[item.Subject][item.Predicate] = -1;
+                                        var arrayLast = data.SP(item.Subject, item.Predicate).LastOrDefault();
+                                        spCounter[item.Subject][item.Predicate] = arrayLast == null ? -1 : arrayLast.Object.Index;
+                                    }
                                 }
+                                var arrayIndex = ++spCounter[item.Subject][item.Predicate];
+                                toAssert.Add(new Triple(item.Subject, item.Predicate, new TripleObject(item.Object.Value, item.Object.IsID, item.Object.TokenType, arrayIndex)));
                             }
                         }
                         data.Assert(toAssert);
@@ -235,10 +243,8 @@ namespace Hexastore.Processor
                 }
 
                 var result = new ObjectQueryExecutor().Query(queryModel, data);
-                dynamic response = new
-                {
-                    values = result.Values?.Select(x =>
-                    {
+                dynamic response = new {
+                    values = result.Values?.Select(x => {
                         var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
                         var rspGraph = new SPOIndex();
                         rspGraph.Assert(expanded);
