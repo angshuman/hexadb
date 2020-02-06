@@ -18,4 +18,10 @@
     <ProjectReference Include="..\Hexastore.Rocks\Hexastore.Rocks.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\json1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
