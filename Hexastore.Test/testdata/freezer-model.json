@@ -1,0 +1,264 @@
+{
+  "@id": "urn:hexadb:Freezer_r2:1",
+  "@type": "CapabilityModel",
+  "implements": [
+    {
+      "@id": "urn:hexadb:Freezer_r2:pmnmvkzw:1",
+      "@type": "InterfaceInstance",
+      "displayName": {
+        "en": "Interface"
+      },
+      "name": "Freezer_41j",
+      "schema": {
+        "@id": "urn:hexadb:Freezer_41j:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Interface"
+        },
+        "contents": [
+          {
+            "@id": "urn:hexadb:Freezer_41j:Temperature:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Temperature"
+            ],
+            "description": {
+              "en": "Actual temperature"
+            },
+            "displayName": {
+              "en": "Temperature"
+            },
+            "name": "Temperature",
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          },
+          {
+            "@id": "urn:hexadb:Freezer_41j:MaxTemp:1",
+            "@type": [
+              "Property",
+              "SemanticType/Temperature"
+            ],
+            "description": {
+              "en": "Set temperature"
+            },
+            "displayName": {
+              "en": "MaxTemp"
+            },
+            "name": "MaxTemp",
+            "writable": true,
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          }
+        ]
+      }
+    },
+    {
+      "@id": "urn:hexadb:Freezer_r2:tv_3trxh:1",
+      "@type": "InterfaceInstance",
+      "name": "ModelDefinition_2hy",
+      "schema": {
+        "@id": "urn:azureiot:ModelDiscovery:ModelDefinition:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Model Definition"
+        },
+        "contents": [
+          {
+            "@id": "urn:azureiot:ModelDiscovery:ModelDefinition:getModelDefinition:1",
+            "@type": "Command",
+            "request": {
+              "@id": "urn:azureiot:ModelDiscovery:ModelDefinition:getModelDefinition:id:1",
+              "@type": "SchemaField",
+              "description": {
+                "en": "Id of the capability model or interface for which the definition is needed. Request one at a time."
+              },
+              "name": "id",
+              "schema": "string"
+            },
+            "response": {
+              "@id": "urn:azureiot:ModelDiscovery:ModelDefinition:getModelDefinition:modelDefinition:1",
+              "@type": "SchemaField",
+              "description": {
+                "en": "JSON formatted definition for the capability model or interface Id. The full description will be sent back as a string."
+              },
+              "name": "modelDefinition",
+              "schema": "string"
+            },
+            "displayName": {
+              "en": "Get Model Definition"
+            },
+            "name": "getModelDefinition"
+          }
+        ]
+      }
+    },
+    {
+      "@id": "urn:hexadb:Freezer_r2:yoteh7fr:1",
+      "@type": "InterfaceInstance",
+      "name": "DeviceInformation_1m2",
+      "schema": {
+        "@id": "urn:azureiot:DeviceManagement:DeviceInformation:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Device information"
+        },
+        "contents": [
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:manufacturer:1",
+            "@type": "Property",
+            "comment": "Company name of the device manufacturer. This could be the same as the name of the original equipment manufacturer (OEM). Ex. Contoso.",
+            "displayName": {
+              "en": "Manufacturer"
+            },
+            "name": "manufacturer",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:model:1",
+            "@type": "Property",
+            "comment": "Device model name or ID. Ex. Surface Book 2.",
+            "displayName": {
+              "en": "Device model"
+            },
+            "name": "model",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:swVersion:1",
+            "@type": "Property",
+            "comment": "Version of the software on your device. This could be the version of your firmware. Ex. 1.3.45",
+            "displayName": {
+              "en": "Software version"
+            },
+            "name": "swVersion",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:osName:1",
+            "@type": "Property",
+            "comment": "Name of the operating system on the device. Ex. Windows 10 IoT Core.",
+            "displayName": {
+              "en": "Operating system name"
+            },
+            "name": "osName",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:processorArchitecture:1",
+            "@type": "Property",
+            "comment": "Architecture of the processor on the device. Ex. x64 or ARM.",
+            "displayName": {
+              "en": "Processor architecture"
+            },
+            "name": "processorArchitecture",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:processorManufacturer:1",
+            "@type": "Property",
+            "comment": "Name of the manufacturer of the processor on the device. Ex. Intel.",
+            "displayName": {
+              "en": "Processor manufacturer"
+            },
+            "name": "processorManufacturer",
+            "schema": "string"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:totalStorage:1",
+            "@type": "Property",
+            "comment": "Total available storage on the device in kilobytes. Ex. 2048000 kilobytes.",
+            "displayName": {
+              "en": "Total storage"
+            },
+            "name": "totalStorage",
+            "displayUnit": {
+              "en": "kilobytes"
+            },
+            "schema": "long"
+          },
+          {
+            "@id": "urn:azureiot:DeviceManagement:DeviceInformation:totalMemory:1",
+            "@type": "Property",
+            "comment": "Total available memory on the device in kilobytes. Ex. 256000 kilobytes.",
+            "displayName": {
+              "en": "Total memory"
+            },
+            "name": "totalMemory",
+            "displayUnit": {
+              "en": "kilobytes"
+            },
+            "schema": "long"
+          }
+        ]
+      }
+    },
+    {
+      "@id": "urn:hexadb:Freezer_r2:0k_4imib:1",
+      "@type": "InterfaceInstance",
+      "name": "ModelInformation_72q",
+      "schema": {
+        "@id": "urn:azureiot:ModelDiscovery:ModelInformation:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Model Information"
+        },
+        "contents": [
+          {
+            "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:1",
+            "@type": "Telemetry",
+            "description": {
+              "en": "Ids for the capability model and interfaces implemented on the device."
+            },
+            "displayName": {
+              "en": "Model Information "
+            },
+            "name": "modelInformation",
+            "schema": {
+              "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:1",
+              "@type": "Object",
+              "displayName": {
+                "en": "Object"
+              },
+              "fields": [
+                {
+                  "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:capabilityModelId:1",
+                  "@type": "SchemaField",
+                  "name": "capabilityModelId",
+                  "schema": "string"
+                },
+                {
+                  "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:interfaces:1",
+                  "@type": "SchemaField",
+                  "name": "interfaces",
+                  "schema": {
+                    "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:interfaces:vruwpgo6tx:1",
+                    "@type": "Map",
+                    "mapKey": {
+                      "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:interfaces:vruwpgo6tx:name:1",
+                      "@type": "Schemas/Map/MapKey",
+                      "name": "name",
+                      "schema": "string"
+                    },
+                    "mapValue": {
+                      "@id": "urn:azureiot:ModelDiscovery:ModelInformation:modelInformation:crbchbp1iu:interfaces:vruwpgo6tx:schema:1",
+                      "@type": "SchemaField",
+                      "name": "schema",
+                      "schema": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "displayName": {
+    "en": "Freezer"
+  },
+  "contents": [],
+  "@context": [
+    "http://azureiot.com/v1/contexts/IoTModel.json"
+  ]
+}

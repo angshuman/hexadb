@@ -1,0 +1,45 @@
+﻿{
+  "@id": "urn:hexadb:Freezer_41j:1",
+  "@type": "Interface",
+  "displayName": {
+    "en": "Interface"
+  },
+  "contents": [
+    {
+      "@id": "urn:hexadb:Freezer_41j:Temperature:1",
+      "@type": [
+        "Telemetry",
+        "SemanticType/Temperature"
+      ],
+      "description": {
+        "en": "Actual temperature"
+      },
+      "displayName": {
+        "en": "Temperature"
+      },
+      "name": "Temperature",
+      "schema": "double",
+      "unit": "Units/Temperature/fahrenheit"
+    },
+    {
+      "@id": "urn:hexadb:Freezer_41j:MaxTemp:1",
+      "@type": [
+        "Property",
+        "SemanticType/Temperature"
+      ],
+      "description": {
+        "en": "Set temperature"
+      },
+      "displayName": {
+        "en": "MaxTemp"
+      },
+      "name": "MaxTemp",
+      "writable": true,
+      "schema": "double",
+      "unit": "Units/Temperature/fahrenheit"
+    }
+  ],
+  "@context": [
+    "http://azureiot.com/v1/contexts/IoTModel.json"
+  ]
+}

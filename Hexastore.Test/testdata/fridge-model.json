@@ -1,0 +1,104 @@
+{
+  "@id": "urn:hexadb:Fridge_7jw:1",
+  "@type": "CapabilityModel",
+  "implements": [
+    {
+      "@id": "urn:hexadb:Fridge_7jw:a1nbbng3:1",
+      "@type": "InterfaceInstance",
+      "name": "Interface_3fo",
+      "schema": {
+        "@id": "urn:hexadb:Freezer_41j:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Interface"
+        },
+        "contents": [
+          {
+            "@id": "urn:hexadb:Freezer_41j:Temperature:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Temperature"
+            ],
+            "description": {
+              "en": "Actual temperature"
+            },
+            "displayName": {
+              "en": "Temperature"
+            },
+            "name": "Temperature",
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          },
+          {
+            "@id": "urn:hexadb:Freezer_41j:MaxTemp:1",
+            "@type": [
+              "Property",
+              "SemanticType/Temperature"
+            ],
+            "description": {
+              "en": "Set temperature"
+            },
+            "displayName": {
+              "en": "MaxTemp"
+            },
+            "name": "MaxTemp",
+            "writable": true,
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          }
+        ]
+      }
+    },
+    {
+      "@id": "urn:hexadb:Fridge_7jw:icafm9ms:1",
+      "@type": "InterfaceInstance",
+      "displayName": {
+        "en": "Interface"
+      },
+      "name": "Fridge_42k",
+      "schema": {
+        "@id": "urn:hexadb:Fridge_42k:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "Interface"
+        },
+        "contents": [
+          {
+            "@id": "urn:hexadb:Fridge_42k:FridgeTemperature:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Temperature"
+            ],
+            "displayName": {
+              "en": "Fridge.Temperature"
+            },
+            "name": "FridgeTemperature",
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          },
+          {
+            "@id": "urn:hexadb:Fridge_42k:FridgeMaxTemperature:1",
+            "@type": [
+              "Property",
+              "SemanticType/Temperature"
+            ],
+            "displayName": {
+              "en": "Fridge.MaxTemperature"
+            },
+            "name": "FridgeMaxTemperature",
+            "writable": true,
+            "schema": "double",
+            "unit": "Units/Temperature/fahrenheit"
+          }
+        ]
+      }
+    }
+  ],
+  "displayName": {
+    "en": "Fridge"
+  },
+  "contents": [],
+  "@context": [
+    "http://azureiot.com/v1/contexts/IoTModel.json"
+  ]
+}

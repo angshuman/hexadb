@@ -18,4 +18,10 @@
     <ProjectReference Include="..\Hexastore.Rocks\Hexastore.Rocks.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="testdata\*.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
