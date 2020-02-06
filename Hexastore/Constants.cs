@@ -7,7 +7,8 @@
         public static readonly string TypeFilter = "type";
         public static readonly string StrictFilter = "strict";
         public static readonly string LevelFilter = "level";
-        public static readonly string LinkDelimeter = "#";
+        public static readonly string LinkDelimeter = "/";
+        public static readonly string AnyPath = "*";
 
         public static readonly string Skip = "skip";
         public static readonly string Take = "take";

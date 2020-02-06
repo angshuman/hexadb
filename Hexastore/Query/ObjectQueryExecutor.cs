@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading;
 using Hexastore.Errors;
 using Hexastore.Graph;
-using Hexastore.Web.Errors;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Query
@@ -25,8 +21,7 @@ namespace Hexastore.Query
             query.PageSize = query.PageSize != 0 ? query.PageSize : Constants.DefaultPageSize;
             if (query.Id != null) {
                 var item = graph.S(query.Id).FirstOrDefault();
-                return new ObjectQueryResponse
-                {
+                return new ObjectQueryResponse {
                     Values = item != null ? new Triple[] { item } : new Triple[0],
                     Continuation = null
                 };
@@ -68,12 +63,10 @@ namespace Hexastore.Query
             if (query.Aggregates == null || query.Aggregates.Length == 0) {
                 var responseTriples = rsp.Take(query.PageSize).ToArray();
                 var cont = responseTriples.Length < query.PageSize ? null : responseTriples.LastOrDefault();
-                var queryResponse = new ObjectQueryResponse
-                {
+                var queryResponse = new ObjectQueryResponse {
                     Values = responseTriples,
                     Continuation = cont != null
-                    ? new Continuation
-                    {
+                    ? new Continuation {
                         S = cont.Subject,
                         P = cont.Predicate,
                         O = cont.Object.ToTypedJSON(),
@@ -102,8 +95,7 @@ namespace Hexastore.Query
                         throw new InvalidOperationException("unknown aggregate");
                 }
             }
-            return new ObjectQueryResponse
-            {
+            return new ObjectQueryResponse {
                 Aggregates = new object[]
                 {
                     responses
@@ -122,8 +114,7 @@ namespace Hexastore.Query
                 case "lt":
                 case "le":
                 case "contains":
-                    return rsp.Where((x) =>
-                    {
+                    return rsp.Where((x) => {
                         var t = graph.SP(x.Subject, key).Any(Comparator(value));
                         return t;
                     });
@@ -154,32 +145,27 @@ namespace Hexastore.Query
             var input = new JValue(value.Value);
             switch (value.Operator) {
                 case "gt":
-                    return (Triple x) =>
-                    {
+                    return (Triple x) => {
                         var jValue = x.Object.ToTypedJSON();
                         return (jValue.CompareTo(input) > 0);
                     };
                 case "ge":
-                    return (Triple x) =>
-                    {
+                    return (Triple x) => {
                         var jValue = x.Object.ToTypedJSON();
                         return (jValue.CompareTo(input) >= 0);
                     };
                 case "lt":
-                    return (Triple x) =>
-                    {
+                    return (Triple x) => {
                         var jValue = x.Object.ToTypedJSON();
                         return (jValue.CompareTo(input) < 0);
                     };
                 case "le":
-                    return (Triple x) =>
-                    {
+                    return (Triple x) => {
                         var jValue = x.Object.ToTypedJSON();
                         return (jValue.CompareTo(input) <= 0);
                     };
                 case "contains":
-                    return (Triple x) =>
-                    {
+                    return (Triple x) => {
                         var jValue = x.Object.ToValue();
                         return jValue.Contains(value.Value.ToString());
                     };
@@ -200,8 +186,7 @@ namespace Hexastore.Query
 
             var paths = link.Path.Split(LinkDelimiterArray);
 
-            var matched = source.Where(x =>
-            {
+            var matched = source.Where(x => {
                 IEnumerable<string> targets;
                 var segments = new Queue<string>(paths);
                 if (link.Level == 0) {
@@ -227,8 +212,7 @@ namespace Hexastore.Query
 
             var paths = link.Path.Split(LinkDelimiterArray).Reverse();
 
-            var matched = source.Where(x =>
-            {
+            var matched = source.Where(x => {
                 IEnumerable<string> targets;
 
                 var segments = new Queue<string>(paths);
@@ -300,12 +284,20 @@ namespace Hexastore.Query
 
         private IEnumerable<string> GetSubjectLink(IStoreGraph graph, string source, string segment)
         {
-            return graph.SP(source, segment).Where(x => x.Object.IsID).Select(x => x.Object.ToValue());
+            if (string.Compare(segment, Constants.AnyPath, StringComparison.Ordinal) == 0) {
+                return graph.S(source).Where(x => x.Object.IsID).Select(x => x.Object.ToValue());
+            } else {
+                return graph.SP(source, segment).Where(x => x.Object.IsID).Select(x => x.Object.ToValue());
+            }
         }
 
         private IEnumerable<string> GetObjectLink(IStoreGraph graph, string source, string segment)
         {
-            return graph.PO(segment, source).Select(x => x.Subject);
+            if (string.Compare(segment, Constants.AnyPath, StringComparison.Ordinal) == 0) {
+                return graph.O(source).Select(x => x.Subject);
+            } else {
+                return graph.PO(segment, source).Select(x => x.Subject);
+            }
         }
     }
 }
