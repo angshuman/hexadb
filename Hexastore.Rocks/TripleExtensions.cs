@@ -9,7 +9,7 @@ namespace Hexastore.Rocks
 {
     public static class TripleExtensions
     {
-        private static int BYTES_PER_INT = 4;
+        private const int BYTES_PER_INT = 4;
 
         public static byte[] GetOIsIdTypeBytes(this Triple triple)
         {
