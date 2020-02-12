@@ -23,14 +23,16 @@ namespace Hexastore.Processor
         private readonly StoreError _storeErrors;
         private readonly ILogger<StoreProcessor> _logger;
         private readonly IStoreOperationFactory _storeOperationFactory;
+        private readonly bool _useLock;
 
-        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, IStoreOperationFactory storeOperationFactory, ILogger<StoreProcessor> logger)
+        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, IStoreOperationFactory storeOperationFactory, ILogger<StoreProcessor> logger, bool useLock = true)
         {
             _setProvider = setProvider;
             _reasoner = reasoner;
             _storeErrors = new StoreError();
             _logger = logger;
             _storeOperationFactory = storeOperationFactory;
+            _useLock = useLock;
         }
 
         public void Assert(string storeId, JToken input, bool strict)
@@ -171,7 +173,10 @@ namespace Hexastore.Processor
             }
             finally
             {
-                _sem.Release();
+                if (_useLock)
+                {
+                    _sem.Release();
+                }
             }
         }
 
@@ -185,7 +190,10 @@ namespace Hexastore.Processor
 
             BuildAsserts(assert, patch);
 
-            await _sem.WaitAsync();
+            if (_useLock)
+            {
+                await _sem.WaitAsync();
+            }
 
             //using (var op = _storeOperationFactory.Write(storeId))
             //{
