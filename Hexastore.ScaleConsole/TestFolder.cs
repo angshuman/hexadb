@@ -27,7 +27,7 @@ namespace Hexastore.TestCommon
         {
             var parts = Guid.NewGuid().ToString().ToLowerInvariant().Split('-');
 
-            _parent = new DirectoryInfo(Path.Combine(Path.GetTempPath(), parts[0]));
+            _parent = new DirectoryInfo(Path.Combine(@"F:\data\scale", parts[0]));
             _parent.Create();
 
             File.WriteAllText(Path.Combine(_parent.FullName, "trace.txt"), Environment.StackTrace);
