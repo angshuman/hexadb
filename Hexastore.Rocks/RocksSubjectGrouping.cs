@@ -40,7 +40,8 @@ namespace Hexastore.Rocks
                 var splits = KeyConfig.Split(key);
                 var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteZero, splits[2], KeyConfig.ByteOne);
                 return it.Seek(nextKey);
-            }).Select(x => x.Predicate);
+            },
+            (it) => { return it.IteratorToTriple(); }).Select(x => x.Predicate);
 
             foreach (var p in predicates) {
                 yield return new RocksPredicateGrouping(_db, _name, _s, p);

@@ -13,6 +13,7 @@ namespace Hexastore.Rocks
         public byte[] O { get; private set; }
         public byte[] IsId { get; private set; }
         public byte[] Index { get; private set; }
+        public byte[] Type { get; private set; }
 
         private byte[] _sKey;
         private byte[] _pKey;
@@ -28,6 +29,8 @@ namespace Hexastore.Rocks
             O = KeyConfig.GetBytes(o.ToValue());
             IsId = o.IsID ? KeyConfig.ByteTrue : KeyConfig.ByteFalse;
             Index = BitConverter.GetBytes(o.Index);
+            var oTyped = o.ToTypedJSON();
+            Type = BitConverter.GetBytes((ushort)oTyped.Type);
         }
 
         public KeySegments(string name, Triple t) : this(name, t.Subject, t.Predicate, t.Object)
