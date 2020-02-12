@@ -36,6 +36,7 @@ namespace Hexastore.Web.EventHubs
                 _eventHubClient = EventHubClient.CreateFromConnectionString(_storeConfig.EventHubConnectionString);
                 _ = this.StartListeners();
                 _ = _storeReceiver.LogCount();
+                _active = true;
             }
         }
 
