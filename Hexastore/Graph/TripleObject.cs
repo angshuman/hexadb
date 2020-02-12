@@ -83,6 +83,11 @@ namespace Hexastore.Graph
             return new TripleObject(s, false, JTokenType.String, null);
         }
 
+        public static TripleObject FromData(string s, bool isId)
+        {
+            return new TripleObject(s, isId, JTokenType.String, null);
+        }
+
         public static TripleObject FromData(string s, int index)
         {
             return new TripleObject(s, false, JTokenType.String, index);
@@ -182,7 +187,8 @@ namespace Hexastore.Graph
             //    return t.IsID == IsID && t.Value == Value && t.TokenType == TokenType;
             //}
 
-            return t.IsID == IsID && t.Value == Value && t.Index == Index && t.TokenType == TokenType;
+            // NOTE: the ! on !t.IsID == !IsID seems to be necessary as without it, it ends up comparing references and not values
+            return !t.IsID == !IsID && t.Value == Value && t.Index == Index && t.TokenType == TokenType;
         }
 
         public override int GetHashCode()
