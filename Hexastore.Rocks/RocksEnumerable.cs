@@ -12,23 +12,25 @@ namespace Hexastore.Rocks
         private readonly byte[] _start;
         private readonly byte[] _end;
         private readonly Func<Iterator, Iterator> _nextFunction;
+        private readonly Func<Iterator, Triple> _currentTripleFunction;
 
-        public RocksEnumerable(RocksDb db, byte[] start, byte[] end, Func<Iterator, Iterator> nextFunction)
+        public RocksEnumerable(RocksDb db, byte[] start, byte[] end, Func<Iterator, Iterator> nextFunction, Func<Iterator, Triple> currentTripleFunction)
         {
             _db = db;
             _start = start;
             _end = end;
             _nextFunction = nextFunction;
+            _currentTripleFunction = currentTripleFunction;
         }
 
         public IEnumerator GetEnumerator()
         {
-            return new RocksEnumerator(_db, _start, _end, _nextFunction);
+            return new RocksEnumerator(_db, _start, _end, _nextFunction, _currentTripleFunction);
         }
 
         IEnumerator<Triple> IEnumerable<Triple>.GetEnumerator()
         {
-            return new RocksEnumerator(_db, _start, _end, _nextFunction);
+            return new RocksEnumerator(_db, _start, _end, _nextFunction, _currentTripleFunction);
         }
     }
 
@@ -39,22 +41,24 @@ namespace Hexastore.Rocks
         private readonly byte[] _end;
         private byte[] _currentKey;
         private readonly Func<Iterator, Iterator> _nextFunction;
+        private readonly Func<Iterator, Triple> _currentTripleFunction;
         private Iterator _iterator;
 
-        public RocksEnumerator(RocksDb db, byte[] start, byte[] end, Func<Iterator, Iterator> nextFunction)
+        public RocksEnumerator(RocksDb db, byte[] start, byte[] end, Func<Iterator, Iterator> nextFunction, Func<Iterator, Triple> currentTripleFunction)
         {
             _db = db;
             _start = start;
             _end = end;
             _currentKey = null;
             _nextFunction = nextFunction;
+            _currentTripleFunction = currentTripleFunction;
         }
 
         public Triple Current
         {
             get
             {
-                return _iterator.Value().ToTriple();
+                return _currentTripleFunction(_iterator);
             }
         }
 

@@ -27,13 +27,16 @@ namespace Hexastore.Rocks
                 return false;
             }
 
-            var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
+            var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+            var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-            var serializedTriple = t.ToBytes();
             using (var batch = new WriteBatch()) {
-                batch.Put(sKey, serializedTriple);
-                batch.Put(pKey, serializedTriple);
-                batch.Put(oKey, serializedTriple);
+                batch.Put(sKey, t.GetOIsIdTypeBytes());
+                batch.Put(pKey, keySegments.Type);
+                if (t.Object.IsID)
+                {
+                    batch.Put(oKey, keySegments.Type);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;
@@ -47,12 +50,15 @@ namespace Hexastore.Rocks
                         continue;
                     }
 
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, t.GetOIsIdTypeBytes());
+                    batch.Put(pKey, keySegments.Type);
+                    if (t.Object.IsID)
+                    {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -71,16 +77,22 @@ namespace Hexastore.Rocks
 
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID)
+                    {
+                        batch.Delete(oKey);
+                    }
                 }
 
                 foreach (var t in assert) {
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, t.GetOIsIdTypeBytes());
+                    batch.Put(pKey, keySegments.Type);
+                    if (t.Object.IsID)
+                    {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -106,7 +118,7 @@ namespace Hexastore.Rocks
             var oPrefix = keySegments.GetOPrefix();
             var start = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteOne);
-            var oEnumerable = new RocksEnumerable(_db, start, end, (it) => it.Next());
+            var oEnumerable = new RocksEnumerable(_db, start, end, (it) => it.Next(), (it) => { return it.IteratorToTriple(); });
             return oEnumerable.Any(x => x.Predicate == p);
         }
 
@@ -121,7 +133,8 @@ namespace Hexastore.Rocks
                 var splits = KeyConfig.Split(key);
                 var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteOne);
                 return it.Seek(nextKey);
-            }).Select(x => x.Subject);
+            },
+            (it) => { return it.IteratorToTriple(); }).Select(x => x.Subject);
 
             foreach (var s in subjects) {
                 var sh = KeySegments.GetNameSKeySubject(Name, s);
@@ -145,7 +158,7 @@ namespace Hexastore.Rocks
             var nameBytes = KeySegments.GetNameSKey(Name);
             var start = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteOne);
-            return new RocksEnumerable(_db, start, end, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, start, end, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IGraph Merge(IGraph g)
@@ -167,7 +180,7 @@ namespace Hexastore.Rocks
             var sh = KeySegments.GetNameSKeySubject(Name, s);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> S(string s, Triple c)
@@ -187,7 +200,7 @@ namespace Hexastore.Rocks
                 return Enumerable.Empty<Triple>();
             }
 
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> SP(string s, string p)
@@ -195,14 +208,17 @@ namespace Hexastore.Rocks
             var sh = KeySegments.GetNameSKeySubjectPredicate(Name, s, p);
             var startS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(sh, KeyConfig.ByteOne);
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public Triple SPI(string s, string p, int index)
         {
             var sh = KeySegments.GetNameSKeySubjectPredicateIndex(Name, s, p, index);
             var t = _db.Get(sh);
-            return t?.ToTriple();
+            if (t == null || t.Length == 0) {
+                return null;
+            }
+            return sh.ToTriple(t);
         }
 
         public IEnumerable<Triple> SP(string s, string p, Triple c)
@@ -221,7 +237,7 @@ namespace Hexastore.Rocks
                 return Enumerable.Empty<Triple>();
             }
 
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> O(TripleObject o)
@@ -230,7 +246,7 @@ namespace Hexastore.Rocks
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> O(TripleObject o, Triple c)
@@ -252,7 +268,7 @@ namespace Hexastore.Rocks
                 return Enumerable.Empty<Triple>();
             }
 
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> OS(TripleObject o, string s)
@@ -261,7 +277,7 @@ namespace Hexastore.Rocks
             var startS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(oh, KeyConfig.ByteOne);
 
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> OS(TripleObject o, string s, Triple c)
@@ -281,7 +297,7 @@ namespace Hexastore.Rocks
             } else if (KeyConfig.ByteCompare(continuation, endS) > 0) {
                 return Enumerable.Empty<Triple>();
             }
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> P(string p)
@@ -290,7 +306,7 @@ namespace Hexastore.Rocks
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<string> P()
@@ -304,7 +320,8 @@ namespace Hexastore.Rocks
                 var splits = KeyConfig.Split(key);
                 var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteOne);
                 return it.Seek(nextKey);
-            }).Select(x => x.Predicate);
+            },
+            (it) => { return it.IteratorToTriple(); }).Select(x => x.Predicate);
 
             return predicates;
         }
@@ -327,7 +344,7 @@ namespace Hexastore.Rocks
                 return Enumerable.Empty<Triple>();
             }
 
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> PO(string p, TripleObject o)
@@ -336,7 +353,7 @@ namespace Hexastore.Rocks
             var startS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteZero);
             var endS = KeyConfig.ConcatBytes(ph, KeyConfig.ByteOne);
 
-            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, startS, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public IEnumerable<Triple> PO(string p, TripleObject o, Triple c)
@@ -357,7 +374,7 @@ namespace Hexastore.Rocks
                 return Enumerable.Empty<Triple>();
             }
 
-            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); });
+            return new RocksEnumerable(_db, continuation, endS, (Iterator it) => { return it.Next(); }, (it) => { return it.IteratorToTriple(); });
         }
 
         public bool Retract(Triple t)
@@ -372,7 +389,10 @@ namespace Hexastore.Rocks
                     var (sKey, pKey, oKey) = new KeySegments(Name, t).GetKeys();
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID)
+                    {
+                        batch.Delete(oKey);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -387,7 +407,10 @@ namespace Hexastore.Rocks
             using (var batch = new WriteBatch()) {
                 batch.Delete(sKey);
                 batch.Delete(pKey);
-                batch.Delete(oKey);
+                if (o.IsID)
+                {
+                    batch.Delete(oKey);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;
