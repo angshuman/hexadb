@@ -167,8 +167,8 @@ namespace Hexastore.Test
         public void GetBy_PO_Returns()
         {
             _set.Assert("s1", "p1", "o1");
-            _set.Assert("s1", "p1", TripleObject.FromId("o3"));
-            _set.Assert("s2", "p1", TripleObject.FromId("o3"));
+            _set.Assert("s1", "p1", TripleObject.FromData("o3"));
+            _set.Assert("s2", "p1", TripleObject.FromData("o3"));
             _set.Assert("s2", "p1", "o2");
             _set.Assert("s3", "p1", "o2");
 
@@ -182,10 +182,10 @@ namespace Hexastore.Test
             Assert.AreEqual(p1o1.Count(), 1);
             CollectionAssert.Contains(p1o1, new Triple("s1", "p1", "o1"));
 
-            var p1o1v = _set.PO("p1", TripleObject.FromData("o3", true)).ToArray();
+            var p1o1v = _set.PO("p1", TripleObject.FromData("o3")).ToArray();
             Assert.AreEqual(p1o1v.Count(), 2);
-            CollectionAssert.Contains(p1o1v, new Triple("s1", "p1", TripleObject.FromId("o3")));
-            CollectionAssert.Contains(p1o1v, new Triple("s2", "p1", TripleObject.FromId("o3")));
+            CollectionAssert.Contains(p1o1v, new Triple("s1", "p1", TripleObject.FromData("o3")));
+            CollectionAssert.Contains(p1o1v, new Triple("s2", "p1", TripleObject.FromData("o3")));
 
             var p3c3 = _set.PO("p3", "c3").ToArray();
             Assert.AreEqual(p3c3.Count(), 1);
@@ -257,7 +257,7 @@ namespace Hexastore.Test
             CollectionAssert.Contains(o1s1, new Triple("s1", "p2", "o1"));
             CollectionAssert.Contains(o1s1, new Triple("s1", "p3", "o1"));
 
-            var o1vs1 = _set.OS(TripleObject.FromData("o2", true), "s1").ToArray();
+            var o1vs1 = _set.OS(TripleObject.FromId("o2"), "s1").ToArray();
             Assert.AreEqual(o1vs1.Count(), 2);
             CollectionAssert.Contains(o1vs1, new Triple("s1", "p1", TripleObject.FromId("o2")));
             CollectionAssert.Contains(o1vs1, new Triple("s1", "p2", TripleObject.FromId("o2")));

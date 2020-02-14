@@ -83,11 +83,6 @@ namespace Hexastore.Graph
             return new TripleObject(s, false, JTokenType.String, null);
         }
 
-        public static TripleObject FromData(string s, bool isId)
-        {
-            return new TripleObject(s, isId, JTokenType.String, null);
-        }
-
         public static TripleObject FromData(string s, int index)
         {
             return new TripleObject(s, false, JTokenType.String, index);
