@@ -46,11 +46,11 @@ namespace Hexastore.Rocks
             var key = iterator.Key();
             var splits = KeyConfig.Split(key);
             var keySpan = new ReadOnlySpan<byte>(splits[0], splits[0].Length - 2, 2);
-            if(keySpan.SequenceEqual(new ReadOnlySpan<byte>(KeyConfig.ByteS)))
+            if(keySpan.SequenceEqual(KeyConfig.ByteS))
             {
                 return SKVPToTriple(iterator.Key(), iterator.Value());
             }
-            else if (keySpan.SequenceEqual(new ReadOnlySpan<byte>(KeyConfig.ByteP)))
+            else if (keySpan.SequenceEqual(KeyConfig.ByteP))
             {
                 return PKVPToTriple(iterator.Key(), iterator.Value());
             }
@@ -60,27 +60,33 @@ namespace Hexastore.Rocks
             }
         }
 
+        private static byte[] StringToBool(ReadOnlySpan<byte> input)
+        {
+            if (input.SequenceEqual(KeyConfig.ByteTrue)){
+                return new byte[] { 1 };
+            }
+            return new byte[] { 0 };
+        }
+
         private static Triple OKVPToTriple(byte[] key, byte[] value)
         {
             // name .O z isId z O z S z P z Index
             // NAME: 
-            ReadOnlySpan<byte> isId, index, tokenType;
+            ReadOnlySpan<byte> isId, index;
             int oStart = 0, oLength = 0, sStart = 0, sLength = 0, pStart = 0, pLength = 0; 
-            var dotOSpan = new ReadOnlySpan<byte>(KeyConfig.ByteO);
             var currentIndex = 0;
             for (var i = currentIndex; i < key.Length; i++)
             {
-                if (dotOSpan.SequenceEqual(new ReadOnlySpan<byte>(key, i, 2)))
+                if (key[i] == 0)
                 {
-                    currentIndex = i;
+                    // currentIdex is at 'z' in '.Oz'. Next should be isId 
+                    currentIndex = i + 1;
                     break;
                 }
             }
 
             // IsId:
-            // currentIdex is at '.' in '.O'. Next should be 'z', can skip both 'Oz' to get to isId 
-            currentIndex += 3;
-            isId = new ReadOnlySpan<byte>(key, currentIndex, 1);
+            isId = StringToBool(new ReadOnlySpan<byte>(key, currentIndex, 1));
             // currentIdex is at 'IsId'. Next should be 'z', can skip both 'IsId z' to get to o value 
             currentIndex += 2;
 
@@ -126,34 +132,30 @@ namespace Hexastore.Rocks
             // currentIdex is at 'z'. Next should be Index 
             currentIndex++;
             index = new ReadOnlySpan<byte>(key, currentIndex, key.Length - currentIndex);
-            // TokenType:
-            tokenType = new ReadOnlySpan<byte>(value);
+            // TokenType: value
 
-            return new Triple(Encoding.UTF8.GetString(key, sStart, sLength), Encoding.UTF8.GetString(key, pStart, pLength), new TripleObject(Encoding.UTF8.GetString(key, oStart, oLength), MemoryMarshal.Read<bool>(isId), (JTokenType)MemoryMarshal.Read<ushort>(tokenType), MemoryMarshal.Read<int>(index)));
+            return new Triple(Encoding.UTF8.GetString(key, sStart, sLength), Encoding.UTF8.GetString(key, pStart, pLength), new TripleObject(Encoding.UTF8.GetString(key, oStart, oLength), MemoryMarshal.Read<bool>(isId), (JTokenType)MemoryMarshal.Read<ushort>(value), MemoryMarshal.Read<int>(index)));
         }
 
         private static Triple PKVPToTriple(byte[] key, byte[] value)
         {
             // name .P z p z isId z O z Index z S 
             // NAME: 
-            ReadOnlySpan<byte> isId, index, tokenType;
+            ReadOnlySpan<byte> isId, index;
             int oStart = 0, oLength = 0, sStart = 0, sLength = 0, pStart = 0, pLength = 0;
 
-            var dotPSpan = new ReadOnlySpan<byte>(KeyConfig.ByteP);
             var currentIndex = 0;
             for (var i = currentIndex; i < key.Length; i++)
             {
-                if (dotPSpan.SequenceEqual(new ReadOnlySpan<byte>(key, i, 2)))
+                if (key[i] == 0)
                 {
-                    currentIndex = i;
+                    // currentIndex is at 'z' in '.Pz'. Next should be p value
+                    currentIndex = i + 1;
                     break;
                 }
             }
 
             // P:
-            // currentIndex is at '.' in '.P'. Next should be 'z', can skip both 'Pz' to get to p value
-            currentIndex += 3;
-
             for (var i = currentIndex; i < key.Length; i++)
             {
                 if (key[i] == 0)
@@ -169,7 +171,7 @@ namespace Hexastore.Rocks
             // IsId:
             // currentIndex is at 'z'. Next should be be isId 
             currentIndex++;
-            isId = new ReadOnlySpan<byte>(key, currentIndex, 1);
+            isId = StringToBool(new ReadOnlySpan<byte>(key, currentIndex, 1));
             // currentIndex is at 'IsId'. Next should be 'z', can skip both 'IsId z' to get to o value 
             currentIndex += 2;
 
@@ -207,10 +209,9 @@ namespace Hexastore.Rocks
                 }
             }
 
-            // TokenType:
-            tokenType = new ReadOnlySpan<byte>(value);
+            // TokenType: Value
 
-            return new Triple(Encoding.UTF8.GetString(key, sStart, sLength), Encoding.UTF8.GetString(key, pStart, pLength), new TripleObject(Encoding.UTF8.GetString(key, oStart, oLength), MemoryMarshal.Read<bool>(isId), (JTokenType)MemoryMarshal.Read<ushort>(tokenType), MemoryMarshal.Read<int>(index)));
+            return new Triple(Encoding.UTF8.GetString(key, sStart, sLength), Encoding.UTF8.GetString(key, pStart, pLength), new TripleObject(Encoding.UTF8.GetString(key, oStart, oLength), MemoryMarshal.Read<bool>(isId), (JTokenType)MemoryMarshal.Read<ushort>(value), MemoryMarshal.Read<int>(index)));
         }
 
         private static Triple SKVPToTriple(byte[] key, byte[] value)
@@ -220,21 +221,18 @@ namespace Hexastore.Rocks
             ReadOnlySpan<byte> index;
             int sStart = 0, sLength = 0, pStart = 0, pLength = 0;
 
-            var dotSSpan = new ReadOnlySpan<byte>(KeyConfig.ByteS);
             var currentIndex = 0;
             for (var i = currentIndex; i < key.Length; i++)
             {
-                if (dotSSpan.SequenceEqual(new ReadOnlySpan<byte>(key, i, 2)))
+                if (key[i] == 0)
                 {
-                    currentIndex = i;
+                    // currentIndex is at 'z' in '.Sz'. Next should be s value
+                    currentIndex = i + 1;
                     break;
                 }
             }
 
             // S:
-            // currentIndex is at '.' in '.S'. Next should be 'z', can skip both 'Sz' to get to s value
-            currentIndex += 3;
-
             for (var i = currentIndex; i < key.Length; i++)
             {
                 if (key[i] == 0)
