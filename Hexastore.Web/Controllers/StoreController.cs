@@ -81,10 +81,10 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}/ingest")]
-        public async Task<IActionResult> Ingest(string storeId, [FromBody]JObject body)
+        public async Task<IActionResult> Ingest(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store {store}", storeId);
-            string url = body["url"]?.ToString();
+            _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store: {store} partition: {partitionId}", storeId, req.PartitionId);
+            string url = req.Data?["url"]?.ToString();
             if (string.IsNullOrEmpty(url)) {
                 return BadRequest();
             }
@@ -104,7 +104,8 @@ namespace Hexastore.Web.Controllers
                             {
                                 Operation = EventType.POST,
                                 Strict = true,
-                                Data = batch.ToString(Formatting.None)
+                                Data = batch.ToString(Formatting.None),
+                                PartitionId = req.PartitionId
                             };
                             await SendEvent(storeId, e);
                             _logger.LogInformation("Batch ingestion", batch.Count);
@@ -131,16 +132,17 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}")]
-        public async Task<IActionResult> Post(string storeId, [FromBody]JToken data)
+        public async Task<IActionResult> Post(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store {store}", storeId);
+            _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store: {store} partition: {partitionId}", storeId, req.PartitionId);
             try {
                 var (_, _, _, strict) = GetParams();
                 var e = new StoreEvent
                 {
                     Operation = EventType.POST,
                     Strict = strict,
-                    Data = data.ToString(Formatting.None)
+                    Data = req.Data.ToString(Formatting.None),
+                    PartitionId = req.PartitionId
                 };
                 await SendEvent(storeId, e);
                 return Accepted();
@@ -150,14 +152,15 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/json")]
-        public async Task<IActionResult> PatchJson(string storeId, [FromBody]JToken data)
+        public async Task<IActionResult> PatchJson(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store {storeId}", storeId);
+            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store: {storeId} partition: {partitionId}", storeId, req.PartitionId);
             try {
                 var e = new StoreEvent
                 {
                     Operation = EventType.PATCH_JSON,
-                    Data = data.ToString(Formatting.None)
+                    Data = req.Data.ToString(Formatting.None),
+                    PartitionId = req.PartitionId
                 };
                 await SendEvent(storeId, e);
                 return Accepted();
@@ -167,14 +170,15 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/triple")]
-        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]JObject data)
+        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store {store}", storeId);
+            _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store: {store} partition: {partitionId}", storeId, req.PartitionId);
             try {
                 var e = new StoreEvent
                 {
                     Operation = EventType.PATCH_TRIPLE,
-                    Data = data.ToString(Formatting.None)
+                    Data = req.Data.ToString(Formatting.None),
+                    PartitionId = req.PartitionId
                 };
                 await SendEvent(storeId, e);
                 return Accepted();
@@ -184,14 +188,15 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpDelete("{storeId}/subject")]
-        public async Task<IActionResult> Delete(string storeId, [FromBody]JObject data)
+        public async Task<IActionResult> Delete(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store {store}", storeId);
+            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store: {store} parition: {partitionId}", storeId, req.PartitionId);
             try {
                 var e = new StoreEvent
                 {
                     Operation = EventType.DELETE,
-                    Data = data.ToString(Formatting.None)
+                    Data = req.Data.ToString(Formatting.None),
+                    PartitionId = req.PartitionId
                 };
                 await SendEvent(storeId, e);
                 return Accepted();

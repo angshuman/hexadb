@@ -24,7 +24,7 @@ namespace Hexastore.Web.EventHubs
         public bool Strict { get; set; }
 
         [JsonProperty("partitionId")]
-        public int PartitionId { get; set; }
+        public string PartitionId { get; set; }
 
         [JsonProperty("storeId")]
         public string StoreId { get; set; }

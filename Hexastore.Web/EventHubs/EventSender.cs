@@ -20,12 +20,10 @@ namespace Hexastore.Web.EventHubs
 
         public int MaxBatchSize
         {
-            get
-            {
+            get {
                 return 1000;
             }
-            set
-            {
+            set {
             }
         }
 
@@ -38,6 +36,7 @@ namespace Hexastore.Web.EventHubs
                 _eventHubClient = EventHubClient.CreateFromConnectionString(_storeConfig.EventHubConnectionString);
                 _ = this.StartListeners();
                 _ = _storeReceiver.LogCount();
+                _active = true;
             }
         }
 
@@ -50,10 +49,15 @@ namespace Hexastore.Web.EventHubs
             }
 
             try {
-                storeEvent.PartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                int ehPartitionId;
+                if (!string.IsNullOrEmpty(storeEvent.PartitionId)) {
+                    ehPartitionId = storeEvent.PartitionId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                } else {
+                    ehPartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                }
                 var content = JsonConvert.SerializeObject(storeEvent, Formatting.None);
                 var bytes = Encoding.UTF8.GetBytes(content);
-                await _eventHubClient.SendAsync(new EventData(bytes), storeEvent.PartitionId.ToString());
+                await _eventHubClient.SendAsync(new EventData(bytes), ehPartitionId.ToString());
             } catch (Exception e) {
                 Console.WriteLine(e);
             }
