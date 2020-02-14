@@ -182,7 +182,8 @@ namespace Hexastore.Graph
             //    return t.IsID == IsID && t.Value == Value && t.TokenType == TokenType;
             //}
 
-            return t.IsID == IsID && t.Value == Value && t.Index == Index && t.TokenType == TokenType;
+            // NOTE: the ! on !t.IsID == !IsID seems to be necessary as without it, it ends up comparing references and not values
+            return !t.IsID == !IsID && t.Index == Index && t.TokenType == TokenType && t.Value == Value;
         }
 
         public override int GetHashCode()

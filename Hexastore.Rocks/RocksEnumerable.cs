@@ -54,7 +54,7 @@ namespace Hexastore.Rocks
         {
             get
             {
-                return _iterator.Value().ToTriple();
+                return _iterator.IteratorToTriple();
             }
         }
 

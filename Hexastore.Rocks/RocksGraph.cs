@@ -27,13 +27,16 @@ namespace Hexastore.Rocks
                 return false;
             }
 
-            var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
+            var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+            var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-            var serializedTriple = t.ToBytes();
             using (var batch = new WriteBatch()) {
-                batch.Put(sKey, serializedTriple);
-                batch.Put(pKey, serializedTriple);
-                batch.Put(oKey, serializedTriple);
+                batch.Put(sKey, t.GetOIsIdTypeBytes());
+                batch.Put(pKey, keySegments.Type);
+                if (t.Object.IsID)
+                {
+                    batch.Put(oKey, keySegments.Type);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;
@@ -47,12 +50,15 @@ namespace Hexastore.Rocks
                         continue;
                     }
 
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, t.GetOIsIdTypeBytes());
+                    batch.Put(pKey, keySegments.Type);
+                    if (t.Object.IsID)
+                    {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -71,16 +77,22 @@ namespace Hexastore.Rocks
 
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID)
+                    {
+                        batch.Delete(oKey);
+                    }
                 }
 
                 foreach (var t in assert) {
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, t.GetOIsIdTypeBytes());
+                    batch.Put(pKey, keySegments.Type);
+                    if (t.Object.IsID)
+                    {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -202,7 +214,10 @@ namespace Hexastore.Rocks
         {
             var sh = KeySegments.GetNameSKeySubjectPredicateIndex(Name, s, p, index);
             var t = _db.Get(sh);
-            return t?.ToTriple();
+            if (t == null || t.Length == 0) {
+                return null;
+            }
+            return sh.ToTriple(t);
         }
 
         public IEnumerable<Triple> SP(string s, string p, Triple c)
@@ -372,7 +387,10 @@ namespace Hexastore.Rocks
                     var (sKey, pKey, oKey) = new KeySegments(Name, t).GetKeys();
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID)
+                    {
+                        batch.Delete(oKey);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -387,7 +405,10 @@ namespace Hexastore.Rocks
             using (var batch = new WriteBatch()) {
                 batch.Delete(sKey);
                 batch.Delete(pKey);
-                batch.Delete(oKey);
+                if (o.IsID)
+                {
+                    batch.Delete(oKey);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;

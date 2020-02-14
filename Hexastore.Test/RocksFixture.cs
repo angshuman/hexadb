@@ -20,15 +20,12 @@ namespace Hexastore.Test
         public readonly IStoreProcesor StoreProcessor;
         public readonly IStoreOperationFactory StoreOperationFactory;
         public readonly string SetId;
+        public readonly TestFolder TestFolder;
 
         public RocksFixture()
         {
-            const string testDirectory = "./testdata";
-            if (Directory.Exists(testDirectory)) {
-                Directory.Delete(testDirectory, true);
-            }
-            Directory.CreateDirectory(testDirectory);
-            GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), testDirectory);
+            TestFolder = new TestFolder();
+            GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), TestFolder.Root);
             StoreProvider = new SetProvider(GraphProvider);
             StoreOperationFactory = new StoreOperationFactory();
             StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), StoreOperationFactory, Mock.Of<ILogger<StoreProcessor>>());
@@ -38,6 +35,7 @@ namespace Hexastore.Test
         public void Dispose()
         {
             GraphProvider.Dispose();
+            TestFolder.Dispose();
         }
     }
 }
