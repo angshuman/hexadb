@@ -11,8 +11,8 @@ namespace Hexastore.Store
         IStoreGraph GetGraph(string id, GraphType type);
         bool ContainsGraph(string id, GraphType type);
         bool DeleteGraph(string id, GraphType type);
-        void WriteKey(string key, string value);
-        string ReadKey(string key);
+        void WriteKey(string id, string key, string value);
+        string ReadKey(string id, string key);
     }
 
     public enum GraphType

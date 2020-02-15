@@ -50,12 +50,12 @@ namespace Hexastore.Store
             return _store[key];
         }
 
-        public string ReadKey(string key)
+        public string ReadKey(string id, string key)
         {
             throw new NotImplementedException();
         }
 
-        public void WriteKey(string key, string value)
+        public void WriteKey(string id, string key, string value)
         {
             throw new NotImplementedException();
         }
