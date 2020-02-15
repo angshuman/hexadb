@@ -27,13 +27,14 @@ namespace Hexastore.Rocks
                 return false;
             }
 
-            var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
+            var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+            var (sKey, pKey, oKey) = keySegments.GetKeys();
 
-            var serializedTriple = t.ToBytes();
+            var serializedTripleObject = t.Object.ToBytes();
             using (var batch = new WriteBatch()) {
-                batch.Put(sKey, serializedTriple);
-                batch.Put(pKey, serializedTriple);
-                batch.Put(oKey, serializedTriple);
+                batch.Put(sKey, serializedTripleObject);
+                batch.Put(pKey, keySegments.Type);
+                batch.Put(oKey, keySegments.Type);
                 _db.Write(batch, _writeOptions);
             }
             return true;
@@ -47,12 +48,13 @@ namespace Hexastore.Rocks
                         continue;
                     }
 
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
+                    var serializedTripleObject = t.Object.ToBytes();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, serializedTripleObject);
+                    batch.Put(pKey, keySegments.Type);
+                    batch.Put(oKey, keySegments.Type);
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -75,12 +77,13 @@ namespace Hexastore.Rocks
                 }
 
                 foreach (var t in assert) {
-                    var (sKey, pKey, oKey) = new KeySegments(Name, t.Subject, t.Predicate, t.Object).GetKeys();
-                    var serializedTriple = t.ToBytes();
+                    var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
+                    var (sKey, pKey, oKey) = keySegments.GetKeys();
+                    var serializedTripleObject = t.Object.ToBytes();
 
-                    batch.Put(sKey, serializedTriple);
-                    batch.Put(pKey, serializedTriple);
-                    batch.Put(oKey, serializedTriple);
+                    batch.Put(sKey, serializedTripleObject);
+                    batch.Put(pKey, keySegments.Type);
+                    batch.Put(oKey, keySegments.Type);
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -201,8 +204,9 @@ namespace Hexastore.Rocks
         public Triple SPI(string s, string p, int index)
         {
             var sh = KeySegments.GetNameSKeySubjectPredicateIndex(Name, s, p, index);
-            var t = _db.Get(sh);
-            return t?.ToTriple();
+            var toBytes = _db.Get(sh);
+            var to = toBytes.ToTripleObject();
+            return new Triple(s, p, new TripleObject(to.Value, to.IsID, to.TokenType, index));
         }
 
         public IEnumerable<Triple> SP(string s, string p, Triple c)

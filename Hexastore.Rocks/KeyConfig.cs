@@ -13,11 +13,11 @@ namespace Hexastore.Rocks
         public byte[] O { get; private set; }
         public byte[] IsId { get; private set; }
         public byte[] Index { get; private set; }
+        public byte[] Type { get; private set; }
 
         private byte[] _sKey;
         private byte[] _pKey;
         private byte[] _oKey;
-
         private byte[] _name;
 
         public KeySegments(string name, string s, string p, TripleObject o)
@@ -28,6 +28,7 @@ namespace Hexastore.Rocks
             O = KeyConfig.GetBytes(o.ToValue());
             IsId = o.IsID ? KeyConfig.ByteTrue : KeyConfig.ByteFalse;
             Index = BitConverter.GetBytes(o.Index);
+            Type = BitConverter.GetBytes((int)o.TokenType);
         }
 
         public KeySegments(string name, Triple t) : this(name, t.Subject, t.Predicate, t.Object)
@@ -136,6 +137,11 @@ namespace Hexastore.Rocks
             return Encoding.UTF8.GetBytes(input);
         }
 
+        public static byte[] GetBytes(int input)
+        {
+            return BitConverter.GetBytes(input);
+        }
+
         public static byte[] ConcatBytes(params byte[][] inputs)
         {
             var totalLength = inputs.Sum(x => x.Length);
@@ -196,8 +202,11 @@ namespace Hexastore.Rocks
         public static readonly byte[] ByteOne = new byte[] { 1 };
         public static readonly byte[] ByteFalse = new byte[] { 48 };
         public static readonly byte[] ByteTrue = new byte[] { 49 };
-        public static readonly byte[] ByteS = new byte[] { 46, 83 }; // .S
-        public static readonly byte[] ByteP = new byte[] { 46, 80 }; // .P
-        public static readonly byte[] ByteO = new byte[] { 46, 79 }; // .O
+        public static readonly byte[] ByteS = new byte[] { 46, SMark }; // .S
+        public static readonly byte[] ByteP = new byte[] { 46, PMark }; // .P
+        public static readonly byte[] ByteO = new byte[] { 46, OMark }; // .O
+        public const int SMark = 83;
+        public const int PMark = 80;
+        public const int OMark = 79;
     }
 }
