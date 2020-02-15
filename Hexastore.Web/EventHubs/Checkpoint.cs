@@ -11,6 +11,7 @@ namespace Hexastore.Web.EventHubs
     public class Checkpoint
     {
         private readonly IGraphProvider _graphProvider;
+        private const string DBName = "checkpoint";
 
         public Checkpoint(IGraphProvider graphProvider)
         {
@@ -19,12 +20,12 @@ namespace Hexastore.Web.EventHubs
 
         public void Write(string key, string offset)
         {
-            _graphProvider.WriteKey(key, offset);
+            _graphProvider.WriteKey(DBName, key, offset);
         }
 
         public string Get(string key)
         {
-            var value = _graphProvider.ReadKey(key);
+            var value = _graphProvider.ReadKey(DBName, key);
             if (value == null) {
                 return "-1";
             }
