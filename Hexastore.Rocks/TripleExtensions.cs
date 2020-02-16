@@ -47,9 +47,9 @@ namespace Hexastore.Rocks
                     isIdEnd = pEnd + 2;
                     oEnd = Array.IndexOf(key, z, isIdEnd + 1);
                     o = Encoding.UTF8.GetString(key, pEnd + 3, oEnd - isIdEnd -1);
-                    index = BitConverter.ToInt32(key, oEnd + 1);
-                    indexEnd = oEnd + 5;
-                    s = Encoding.UTF8.GetString(key, indexEnd + 1, key.Length - indexEnd -1);
+                    sEnd = Array.IndexOf(key, z, oEnd + 1);
+                    s = Encoding.UTF8.GetString(key, oEnd +1, sEnd - oEnd -1);
+                    index = BitConverter.ToInt32(key, sEnd + 1);
                     type = (JTokenType)BitConverter.ToInt32(value, 0);
                     break;
                 case KeyConfig.OMark:

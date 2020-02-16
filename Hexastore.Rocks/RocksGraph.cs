@@ -34,7 +34,9 @@ namespace Hexastore.Rocks
             using (var batch = new WriteBatch()) {
                 batch.Put(sKey, serializedTripleObject);
                 batch.Put(pKey, keySegments.Type);
-                batch.Put(oKey, keySegments.Type);
+                if (t.Object.IsID) {
+                    batch.Put(oKey, keySegments.Type);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;
@@ -54,7 +56,9 @@ namespace Hexastore.Rocks
 
                     batch.Put(sKey, serializedTripleObject);
                     batch.Put(pKey, keySegments.Type);
-                    batch.Put(oKey, keySegments.Type);
+                    if (t.Object.IsID) {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -73,7 +77,9 @@ namespace Hexastore.Rocks
 
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID) {
+                        batch.Delete(oKey);
+                    }
                 }
 
                 foreach (var t in assert) {
@@ -83,7 +89,9 @@ namespace Hexastore.Rocks
 
                     batch.Put(sKey, serializedTripleObject);
                     batch.Put(pKey, keySegments.Type);
-                    batch.Put(oKey, keySegments.Type);
+                    if (t.Object.IsID) {
+                        batch.Put(oKey, keySegments.Type);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -106,9 +114,9 @@ namespace Hexastore.Rocks
         public bool Exists(string s, string p, TripleObject o)
         {
             var keySegments = new KeySegments(Name, s, p, o);
-            var oPrefix = keySegments.GetOPrefix();
-            var start = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteZero);
-            var end = KeyConfig.ConcatBytes(oPrefix, KeyConfig.ByteOne);
+            var pPrefix = keySegments.GetPPrefix();
+            var start = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteZero);
+            var end = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteOne);
             var oEnumerable = new RocksEnumerable(_db, start, end, (it) => it.Next());
             return oEnumerable.Any(x => x.Predicate == p);
         }
@@ -118,8 +126,7 @@ namespace Hexastore.Rocks
             var nameBytes = KeySegments.GetNameSKey(Name);
             var start = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteZero);
             var end = KeyConfig.ConcatBytes(nameBytes, KeyConfig.ByteOne);
-            var subjects = new RocksEnumerable(_db, start, end, (it) =>
-            {
+            var subjects = new RocksEnumerable(_db, start, end, (it) => {
                 var key = it.Key();
                 var splits = KeyConfig.Split(key);
                 var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteOne);
@@ -302,8 +309,7 @@ namespace Hexastore.Rocks
             var pPrefix = KeySegments.GetNamePPredicate(Name);
             var startP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteZero);
             var endP = KeyConfig.ConcatBytes(pPrefix, KeyConfig.ByteOne);
-            var predicates = new RocksEnumerable(_db, startP, endP, (it) =>
-            {
+            var predicates = new RocksEnumerable(_db, startP, endP, (it) => {
                 var key = it.Key();
                 var splits = KeyConfig.Split(key);
                 var nextKey = KeyConfig.ConcatBytes(splits[0], KeyConfig.ByteZero, splits[1], KeyConfig.ByteOne);
@@ -376,7 +382,9 @@ namespace Hexastore.Rocks
                     var (sKey, pKey, oKey) = new KeySegments(Name, t).GetKeys();
                     batch.Delete(sKey);
                     batch.Delete(pKey);
-                    batch.Delete(oKey);
+                    if (t.Object.IsID) {
+                        batch.Delete(oKey);
+                    }
                 }
                 _db.Write(batch, _writeOptions);
             }
@@ -391,7 +399,9 @@ namespace Hexastore.Rocks
             using (var batch = new WriteBatch()) {
                 batch.Delete(sKey);
                 batch.Delete(pKey);
-                batch.Delete(oKey);
+                if (o.IsID) {
+                    batch.Delete(oKey);
+                }
                 _db.Write(batch, _writeOptions);
             }
             return true;

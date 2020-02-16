@@ -40,17 +40,17 @@ namespace Hexastore.Rocks
             if (_sKey == null) {
                 var z = KeyConfig.ByteZero;
                 _sKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteS, z, S, z, P, z, Index);
-                _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, Index, z, S);
+                _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, S, z, Index);
                 _oKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P, z, Index);
             }
 
             return (_sKey, _pKey, _oKey);
         }
 
-        public byte[] GetOPrefix()
+        public byte[] GetPPrefix()
         {
             var z = KeyConfig.ByteZero;
-            return KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P);
+            return KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, S);
         }
 
         public static byte[] GetNameSKey(string name)
