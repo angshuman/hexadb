@@ -26,7 +26,6 @@ namespace Hexastore.Rocks
             int pEnd;
             int oEnd;
             int isIdEnd;
-            int indexEnd;
 
             switch (key[firstZPos - 1]) {
                 case KeyConfig.SMark:
@@ -46,7 +45,7 @@ namespace Hexastore.Rocks
                     isId = key[pEnd + 1] == KeyConfig.ByteTrue[0] ? true : false;
                     isIdEnd = pEnd + 2;
                     oEnd = Array.IndexOf(key, z, isIdEnd + 1);
-                    o = Encoding.UTF8.GetString(key, pEnd + 3, oEnd - isIdEnd -1);
+                    o = Encoding.UTF8.GetString(key, isIdEnd + 1, oEnd - isIdEnd -1);
                     sEnd = Array.IndexOf(key, z, oEnd + 1);
                     s = Encoding.UTF8.GetString(key, oEnd +1, sEnd - oEnd -1);
                     index = BitConverter.ToInt32(key, sEnd + 1);
