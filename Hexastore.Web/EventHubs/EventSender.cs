@@ -50,14 +50,23 @@ namespace Hexastore.Web.EventHubs
 
             try {
                 int ehPartitionId;
-                if (!string.IsNullOrEmpty(storeEvent.PartitionId)) {
-                    ehPartitionId = storeEvent.PartitionId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                if (storeEvent.PartitionId == "auto-partition") {
+
+                    
+
+
+
                 } else {
-                    ehPartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                    if (!string.IsNullOrEmpty(storeEvent.PartitionId)) {
+                        ehPartitionId = storeEvent.PartitionId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                    } else {
+                        ehPartitionId = storeEvent.StoreId.GetHashCode() % _storeConfig.EventHubPartitionCount;
+                    }
+                    var content = JsonConvert.SerializeObject(storeEvent, Formatting.None);
+                    var bytes = Encoding.UTF8.GetBytes(content);
+
+                    await _eventHubClient.SendAsync(new EventData(bytes), ehPartitionId.ToString());
                 }
-                var content = JsonConvert.SerializeObject(storeEvent, Formatting.None);
-                var bytes = Encoding.UTF8.GetBytes(content);
-                await _eventHubClient.SendAsync(new EventData(bytes), ehPartitionId.ToString());
             } catch (Exception e) {
                 Console.WriteLine(e);
             }

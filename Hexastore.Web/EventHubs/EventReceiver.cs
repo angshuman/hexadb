@@ -96,7 +96,7 @@ namespace Hexastore.Web.EventHubs
             }
 
             try {
-                var data = JToken.Parse(storeEvent.Data);
+                var data = storeEvent.Data;
                 switch (operation) {
                     case EventType.POST:
                         _storeProcessor.Assert(storeId, data, strict);
@@ -105,7 +105,7 @@ namespace Hexastore.Web.EventHubs
                         _storeProcessor.PatchJson(storeId, data);
                         break;
                     case EventType.PATCH_TRIPLE:
-                        var patch = JObject.Parse(storeEvent.Data);
+                        var patch = (JObject)storeEvent.Data;
                         _storeProcessor.PatchTriple(storeId, patch);
                         break;
                     case EventType.DELETE:
