@@ -212,6 +212,9 @@ namespace Hexastore.Rocks
         {
             var sh = KeySegments.GetNameSKeySubjectPredicateIndex(Name, s, p, index);
             var toBytes = _db.Get(sh);
+            if (toBytes == null) {
+                return null;
+            }
             var to = toBytes.ToTripleObject();
             return new Triple(s, p, new TripleObject(to.Value, to.IsID, to.TokenType, index));
         }
