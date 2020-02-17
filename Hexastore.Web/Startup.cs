@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 
 namespace Hexastore.Web
 {
@@ -26,20 +28,19 @@ namespace Hexastore.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddCors(options =>
-            {
+            services.AddCors(options => {
                 options.AddPolicy("AllowAnyOrigin",
                     builder => builder
                         .AllowAnyOrigin()
                         .AllowAnyMethod()
                         .WithExposedHeaders("content-disposition")
                         .AllowAnyHeader()
-                        .AllowCredentials()
                         .SetPreflightMaxAge(TimeSpan.FromSeconds(3600)));
             });
 
-            services.AddMvc();
+
+            services.AddControllers().AddNewtonsoftJson();
+
             services.AddSingleton<IGraphProvider, RocksGraphProvider>();
             services.AddSingleton<IReasoner, Reasoner>();
             services.AddSingleton<IStoreProcesor, StoreProcessor>();
@@ -54,7 +55,7 @@ namespace Hexastore.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (File.Exists("/var/data/Hexastore.env")) {
                 DotEnv.Config(false, "/var/data/Hexastore.env");
@@ -68,7 +69,14 @@ namespace Hexastore.Web
             app.UseCors("AllowAnyOrigin");
 
             app.UseMiddleware<PerfHeaderMiddleware>();
-            app.UseMvc();
+
+            // app.UseHttpsRedirection();
+            // app.UseAuthorization();
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+            });
         }
     }
 }
