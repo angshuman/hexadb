@@ -30,8 +30,7 @@ namespace Hexastore.Web.Controllers
         public IActionResult Get()
         {
             _logger.LogInformation(LoggingEvents.ControllerHealth, "health");
-            var info = new
-            {
+            var info = new {
                 RuntimeInformation.OSDescription,
                 RuntimeInformation.FrameworkDescription,
                 RuntimeInformation.OSArchitecture,
@@ -100,8 +99,7 @@ namespace Hexastore.Web.Controllers
                         batch.Add(item);
 
                         if (batch.Count == 1000) {
-                            var e = new StoreEvent
-                            {
+                            var e = new StoreEvent {
                                 Operation = EventType.POST,
                                 Strict = true,
                                 Data = batch.ToString(Formatting.None),
@@ -114,8 +112,7 @@ namespace Hexastore.Web.Controllers
                     }
 
                     if (batch.Count > 0) {
-                        var e = new StoreEvent
-                        {
+                        var e = new StoreEvent {
                             Operation = EventType.POST,
                             Strict = true,
                             Data = batch.ToString(Formatting.None)
@@ -132,19 +129,20 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}")]
-        public async Task<IActionResult> Post(string storeId, [FromBody]UpdateRequest req)
+        public async Task<IActionResult> Post(string storeId, [FromBody]UpdateRequest[] batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store: {store} partition: {partitionId}", storeId, req.PartitionId);
+            _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store: {store} batch size: {size}", storeId, batch.Length);
             try {
                 var (_, _, _, strict) = GetParams();
-                var e = new StoreEvent
-                {
-                    Operation = EventType.POST,
-                    Strict = strict,
-                    Data = req.Data.ToString(Formatting.None),
-                    PartitionId = req.PartitionId
-                };
-                await SendEvent(storeId, e);
+                foreach (var req in batch) {
+                    var e = new StoreEvent {
+                        Operation = EventType.POST,
+                        Strict = strict,
+                        Data = req.Data.ToString(Formatting.None),
+                        PartitionId = req.PartitionId
+                    };
+                    await SendEvent(storeId, e);
+                }
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -152,17 +150,18 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/json")]
-        public async Task<IActionResult> PatchJson(string storeId, [FromBody]UpdateRequest req)
+        public async Task<IActionResult> PatchJson(string storeId, [FromBody]UpdateRequest[] batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store: {storeId} partition: {partitionId}", storeId, req.PartitionId);
+            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store: {storeId} batch size: {size}", storeId, batch.Length);
             try {
-                var e = new StoreEvent
-                {
-                    Operation = EventType.PATCH_JSON,
-                    Data = req.Data.ToString(Formatting.None),
-                    PartitionId = req.PartitionId
-                };
-                await SendEvent(storeId, e);
+                foreach (var req in batch) {
+                    var e = new StoreEvent {
+                        Operation = EventType.PATCH_JSON,
+                        Data = req.Data.ToString(Formatting.None),
+                        PartitionId = req.PartitionId
+                    };
+                    await SendEvent(storeId, e);
+                }
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -170,17 +169,18 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/triple")]
-        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]UpdateRequest req)
+        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]UpdateRequest[] batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store: {store} partition: {partitionId}", storeId, req.PartitionId);
+            _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store: {store} batch size: {size}", storeId, batch.Length);
             try {
-                var e = new StoreEvent
-                {
-                    Operation = EventType.PATCH_TRIPLE,
-                    Data = req.Data.ToString(Formatting.None),
-                    PartitionId = req.PartitionId
-                };
-                await SendEvent(storeId, e);
+                foreach (var req in batch) {
+                    var e = new StoreEvent {
+                        Operation = EventType.PATCH_TRIPLE,
+                        Data = req.Data.ToString(Formatting.None),
+                        PartitionId = req.PartitionId
+                    };
+                    await SendEvent(storeId, e);
+                }
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -188,17 +188,19 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpDelete("{storeId}/subject")]
-        public async Task<IActionResult> Delete(string storeId, [FromBody]UpdateRequest req)
+        public async Task<IActionResult> Delete(string storeId, [FromBody]UpdateRequest[] batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store: {store} parition: {partitionId}", storeId, req.PartitionId);
+            _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store: {store} parition: {partitionId}", storeId, batch.Length);
             try {
-                var e = new StoreEvent
-                {
-                    Operation = EventType.DELETE,
-                    Data = req.Data.ToString(Formatting.None),
-                    PartitionId = req.PartitionId
-                };
-                await SendEvent(storeId, e);
+                foreach (var req in batch) {
+
+                    var e = new StoreEvent {
+                        Operation = EventType.DELETE,
+                        Data = req.Data.ToString(Formatting.None),
+                        PartitionId = req.PartitionId
+                    };
+                    await SendEvent(storeId, e);
+                }
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);

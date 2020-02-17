@@ -64,16 +64,11 @@ namespace Hexastore.Web.Controllers
             return (skip, take);
         }
 
-        protected Task SendEvent(string storeId, StoreEvent payload)
+        protected async Task SendEvent(string storeId, StoreEvent payload)
         {
-            var guid = Guid.NewGuid().ToString();
-            payload.OperationId = guid;
+            // todo: resolve the promise when all messages are roundtripped from EH
             payload.StoreId = storeId;
-
-            var tc = new TaskCompletionSource<bool>();
-            _receiver.SetCompletion(guid, tc);
-            _ = _eventProcessor.SendMessage(payload);
-            return tc.Task;
+            await _eventProcessor.SendMessage(payload);
         }
 
         protected IActionResult HandleException(Exception e)

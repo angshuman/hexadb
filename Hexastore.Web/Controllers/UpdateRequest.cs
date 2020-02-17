@@ -13,6 +13,6 @@ namespace Hexastore.Web.Controllers
         public string PartitionId { get; set; }
 
         [JsonProperty("data")]
-        public JToken Data { get; set; }
+        public JObject Data { get; set; }
     }
 }
