@@ -42,7 +42,7 @@ namespace Hexastore.Web.Queue
             return new Task(() => {
                 while (!_cts.IsCancellationRequested) {
                     try {
-                        var storeEvent = _queue.Take();
+                        var storeEvent = _queue.Take(_cts.Token);
                         _eventReceiver.ProcessEventsAsync(storeEvent);
                     } catch(Exception e) {
                         _logger.LogError("Error in reading from queue {e}", e);
