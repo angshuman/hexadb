@@ -102,7 +102,7 @@ namespace Hexastore.Web.Controllers
                             var e = new StoreEvent {
                                 Operation = EventType.POST,
                                 Strict = true,
-                                Data = batch.ToString(Formatting.None),
+                                Data = batch,
                                 PartitionId = req.PartitionId
                             };
                             await SendEvent(storeId, e);
@@ -115,7 +115,7 @@ namespace Hexastore.Web.Controllers
                         var e = new StoreEvent {
                             Operation = EventType.POST,
                             Strict = true,
-                            Data = batch.ToString(Formatting.None)
+                            Data = batch
                         };
                         await SendEvent(storeId, e);
                         _logger.LogInformation("Batch ingestion", batch.Count);
@@ -138,7 +138,7 @@ namespace Hexastore.Web.Controllers
                     var e = new StoreEvent {
                         Operation = EventType.POST,
                         Strict = strict,
-                        Data = req.Data.ToString(Formatting.None),
+                        Data = req.Data,
                         PartitionId = req.PartitionId
                     };
                     await SendEvent(storeId, e);
@@ -157,7 +157,7 @@ namespace Hexastore.Web.Controllers
                 foreach (var req in batch) {
                     var e = new StoreEvent {
                         Operation = EventType.PATCH_JSON,
-                        Data = req.Data.ToString(Formatting.None),
+                        Data = req.Data,
                         PartitionId = req.PartitionId
                     };
                     await SendEvent(storeId, e);
@@ -176,7 +176,7 @@ namespace Hexastore.Web.Controllers
                 foreach (var req in batch) {
                     var e = new StoreEvent {
                         Operation = EventType.PATCH_TRIPLE,
-                        Data = req.Data.ToString(Formatting.None),
+                        Data = req.Data,
                         PartitionId = req.PartitionId
                     };
                     await SendEvent(storeId, e);
@@ -196,7 +196,7 @@ namespace Hexastore.Web.Controllers
 
                     var e = new StoreEvent {
                         Operation = EventType.DELETE,
-                        Data = req.Data.ToString(Formatting.None),
+                        Data = req.Data,
                         PartitionId = req.PartitionId
                     };
                     await SendEvent(storeId, e);
