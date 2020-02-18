@@ -24,6 +24,8 @@ namespace Hexastore.Web.Queue
             _task.Start();
         }
 
+        public int Length => _queue.Count;
+
         public void Dispose()
         {
             _cts.Cancel();
