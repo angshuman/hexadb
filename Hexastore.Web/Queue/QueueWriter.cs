@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Hexastore.Errors;
 using Hexastore.Web.EventHubs;
 using Microsoft.Extensions.Logging;
 
@@ -11,17 +12,19 @@ namespace Hexastore.Web.Queue
     {
         private readonly BlockingCollection<StoreEvent> _queue;
         private readonly EventReceiver _eventReceiver;
+        private readonly StoreError _storeError;
         private readonly ILogger _logger;
         private readonly Task _task;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly int MaxQueueSize = 4096;
 
-        public QueueWriter(EventReceiver eventReceiver, ILogger logger)
+        public QueueWriter(EventReceiver eventReceiver, ILogger logger, StoreError storeError)
         {
-            _queue = new BlockingCollection<StoreEvent>();
             _eventReceiver = eventReceiver;
+            _storeError = storeError;
+            _queue = new BlockingCollection<StoreEvent>();
             _logger = logger;
             _task = StartReader();
-            _task.Start();
         }
 
         public int Length => _queue.Count;
@@ -34,12 +37,15 @@ namespace Hexastore.Web.Queue
 
         public void Send(StoreEvent storeEvent)
         {
+            if (_queue.Count > MaxQueueSize) {
+                throw _storeError.MaxQueueSize;
+            }
             _queue.Add(storeEvent);
         }
 
         private Task StartReader()
         {
-            return new Task(() => {
+             return Task.Run(() => {
                 while (!_cts.IsCancellationRequested) {
                     try {
                         var storeEvent = _queue.Take(_cts.Token);

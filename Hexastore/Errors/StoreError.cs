@@ -16,6 +16,7 @@ namespace Hexastore.Errors
         public string UnknownCOmparatorError => "400.006";
         public string UnableToParseQuery => "400.007";
         public string UnableToParseStoreEvent => "400.008";
+        public string MaxQueueSizeError => "429.001";
 
         // 409
         public string AlreadyContainsIdError => "409.001";
@@ -30,5 +31,6 @@ namespace Hexastore.Errors
         public StoreException AtLeastOneFilter => new StoreException("need at least one filter", AtLestOneFilterError);
         public StoreException PathEmpty => new StoreException("path cannot be empty", PathEmptyError);
         public StoreException UnknownComparator => new StoreException("Unknown Comparator Type", UnknownCOmparatorError);
+        public StoreException MaxQueueSize => new StoreException("Queue size high", MaxQueueSizeError);
     }
 }
