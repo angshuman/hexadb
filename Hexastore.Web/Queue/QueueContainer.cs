@@ -36,7 +36,7 @@ namespace Hexastore.Web.Queue
 
         public void Send(StoreEvent storeEvent)
         {
-            var partitionId = Math.Abs(storeEvent.PartitionId.GetHashCode() % _count);
+            var partitionId = Math.Abs(Hasher.GetFnvHash32(storeEvent.PartitionId) % _count);
             _queueWriters[partitionId].Send(storeEvent);
         }
 
