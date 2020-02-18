@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Hexastore.Web.Queue;
 
 namespace Hexastore.Web
 {
@@ -46,7 +47,8 @@ namespace Hexastore.Web
             services.AddSingleton<IStoreProcesor, StoreProcessor>();
             services.AddSingleton<IStoreProvider, SetProvider>();
             services.AddSingleton<IStoreOperationFactory, StoreOperationFactory>();
-
+            services.AddSingleton<IStoreOperationFactory, StoreOperationFactory>();
+            services.AddSingleton<IQueueContainer, QueueContainer>();
             services.AddSingleton<StoreError>();
             services.AddSingleton<EventReceiver>();
             services.AddSingleton<EventSender>();

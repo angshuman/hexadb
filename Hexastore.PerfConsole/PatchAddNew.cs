@@ -48,8 +48,7 @@ namespace Hexastore.PerfConsole
                 var storeLogger = factory.CreateLogger<StoreProcessor>();
                 var provider = new RocksGraphProvider(logger, testFolder);
                 var storeProvider = new SetProvider(provider);
-                var storeOperationFactory = new StoreOperationFactory();
-                var storeProcessor = new StoreProcessor(storeProvider, new Reasoner(), storeOperationFactory, storeLogger);
+                var storeProcessor = new StoreProcessor(storeProvider, new Reasoner(), storeLogger);
 
 
                 var storeId = "test";

@@ -32,8 +32,7 @@ namespace Hexastore.Test
             TestFolder = new TestFolder();
             GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), TestFolder.Root);
             StoreProvider = new SetProvider(GraphProvider);
-            StoreOperationFactory = new StoreOperationFactory();
-            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), StoreOperationFactory, Mock.Of<ILogger<StoreProcessor>>());
+            StoreProcessor = new StoreProcessor(StoreProvider, new Reasoner(), Mock.Of<ILogger<StoreProcessor>>());
             SetId = "testset";
         }
 

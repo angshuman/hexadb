@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Hexastore.Web.Queue;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,6 +12,7 @@ namespace Hexastore.Web.EventHubs
     public class EventSender : IDisposable
     {
         private readonly EventReceiver _storeReceiver;
+        private readonly IQueueContainer _queueContainer;
         private readonly Checkpoint _checkpoint;
         private readonly StoreConfig _storeConfig;
         private readonly EventHubClient _eventHubClient;
@@ -27,15 +29,15 @@ namespace Hexastore.Web.EventHubs
             }
         }
 
-        public EventSender(EventReceiver receiver, Checkpoint checkpoint, StoreConfig storeConfig)
+        public EventSender(IQueueContainer queueContainer, EventReceiver storeReceiver, Checkpoint checkpoint, StoreConfig storeConfig)
         {
-            _storeReceiver = receiver;
+            _storeReceiver = storeReceiver;
+            _queueContainer = queueContainer;
             _checkpoint = checkpoint;
             _storeConfig = storeConfig;
             if (_storeConfig.ReplicationIsActive) {
                 _eventHubClient = EventHubClient.CreateFromConnectionString(_storeConfig.EventHubConnectionString);
-                _ = this.StartListeners();
-                _ = _storeReceiver.LogCount();
+                _ = StartListeners();
                 _active = true;
             }
         }
@@ -44,7 +46,7 @@ namespace Hexastore.Web.EventHubs
         {
             if (!_active) {
                 // pass through
-                await _storeReceiver.ProcessEventsAsync(storeEvent);
+                _queueContainer.Send(storeEvent);
                 return;
             }
 
