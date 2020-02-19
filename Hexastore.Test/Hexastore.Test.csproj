@@ -18,4 +18,14 @@
     <ProjectReference Include="..\Hexastore.Rocks\Hexastore.Rocks.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestInput\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestInput\region.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

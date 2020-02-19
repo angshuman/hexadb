@@ -12,7 +12,7 @@ namespace Hexastore.Rocks
     public class RocksGraphProvider : IGraphProvider, IDisposable
     {
         private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
-        private readonly ConcurrentDictionary<string, RocksDb> _dbs = new ConcurrentDictionary<string, RocksDb>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, RocksDb> _dbs = new ConcurrentDictionary<string, RocksDb>();
         private readonly ILogger _logger;
         private readonly string _rootPath = null;
         private readonly DbOptions _dbOptions = new DbOptions().SetCreateIfMissing(true);
@@ -21,22 +21,31 @@ namespace Hexastore.Rocks
         public RocksGraphProvider(ILogger<RocksGraphProvider> logger, string path = null, DbOptions optionInput = null)
         {
             _logger = logger;
-            if (path == null) {
+            _rootPath = path;
+
+            if (_rootPath == null) {
+                var configPath = Environment.GetEnvironmentVariable("HEXASTORE_DATA_PATH");
+                if (!string.IsNullOrEmpty(configPath)) {
+                    _rootPath = Path.GetFullPath(configPath);
+                }
+            }
+
+            if (_rootPath == null) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                     _rootPath = "/var/data/hexastore";
                 } else {
                     _rootPath = "C:\\data\\hexastore";
                 }
-            } else {
-                _rootPath = path;
             }
+
             Directory.CreateDirectory(_rootPath);
 
-            if (optionInput != null)
-            {
+            if (optionInput != null) {
                 _dbOptions = optionInput;
+            } else {
+                _dbOptions.SetAllowConcurrentMemtableWrite(true);
             }
-                
+
             /*
             .SetAllowConcurrentMemtableWrite(true)
             .SetAllowMmapReads(true)
@@ -51,43 +60,44 @@ namespace Hexastore.Rocks
         public bool ContainsGraph(string id, GraphType type)
         {
             var key = MakeKey(id, type);
-            var db = GetOrOpenDB(id);
-            return db.Get(key) == "1";
+            var db = GetDBOrNull(id);
+            return db?.Get(key) == "1";
         }
 
         public IStoreGraph CreateGraph(string id, GraphType type)
         {
             var key = MakeKey(id, type);
-            var db = GetOrOpenDB(id);
+            var db = GetOrCreateDB(id);
             db.Put(key, "1");
             return new RocksGraph(key, db);
         }
 
         public bool DeleteGraph(string id, GraphType type)
         {
-            if (!ContainsGraph(id, type)) {
+            var db = GetDBOrNull(id);
+
+            if (db == null || !ContainsGraph(id, type)) {
                 return false;
             }
-            GetOrOpenDB(id).Remove(MakeKey(id, type));
+            db.Remove(MakeKey(id, type));
             return true;
         }
 
         public void WriteKey(string id, string key, string value)
         {
-            GetOrOpenDB(id).Put(key, value, null, _writeOptions);
+            GetDB(id).Put(key, value, null, _writeOptions);
         }
 
         public string ReadKey(string id, string key)
         {
-            return GetOrOpenDB(id).Get(key);
+            return GetDB(id).Get(key);
         }
 
         public void Dispose()
         {
             _logger.LogInformation("disposing rocksdb");
-            
-            foreach (var pair in _dbs)
-            {
+
+            foreach (var pair in _dbs) {
                 pair.Value.Dispose();
             }
 
@@ -96,11 +106,9 @@ namespace Hexastore.Rocks
 
         public IStoreGraph GetGraph(string id, GraphType type)
         {
-            if (ContainsGraph(id, type)) {
-                string key = MakeKey(id, type);
-                return new RocksGraph(key, GetOrOpenDB(id));
-            }
-            throw new FileNotFoundException();
+            var db = GetDB(id);
+            string key = MakeKey(id, type);
+            return new RocksGraph(key, db);
         }
 
         private static string MakeKey(string id, GraphType type)
@@ -108,30 +116,52 @@ namespace Hexastore.Rocks
             return $"{(int)type}"; ;
         }
 
-        private RocksDb GetOrOpenDB(string id)
+        private RocksDb GetDB(string id)
         {
-            if (string.IsNullOrEmpty(id))
-            {
+            if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException("message", nameof(id));
             }
 
-            RocksDb db = null;
+            var db = GetDBOrNull(id);
 
-            if (!_dbs.TryGetValue(id, out db))
-            {
+            if (db == null) {
+                throw new FileNotFoundException($"Unable to find rocks db: {id}");
+            }
+
+            return db;
+        }
+
+        private RocksDb GetDBOrNull(string id)
+        {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentException("message", nameof(id));
+            }
+
+            // Get the db if it exists, otherwise null is returned
+            _dbs.TryGetValue(id, out var db);
+
+            return db;
+        }
+
+        private RocksDb GetOrCreateDB(string id)
+        {
+            if (string.IsNullOrEmpty(id)) {
+                throw new ArgumentException("message", nameof(id));
+            }
+
+            var db = GetDBOrNull(id);
+
+            if (db == null) {
                 // Allow only one db to be created at a time to avoid conflicts
-                lock (_dbs)
-                {
+                lock (_dbs) {
                     // Double check lock
-                    if (!_dbs.TryGetValue(id, out db))
-                    {
+                    if (!_dbs.TryGetValue(id, out db)) {
                         var dbPath = Path.Combine(_rootPath, id);
 
                         db = RocksDb.Open(_dbOptions, dbPath);
                         _logger.LogInformation($"created rocksdb at {dbPath}");
-                        
-                        if (!_dbs.TryAdd(id, db))
-                        {
+
+                        if (!_dbs.TryAdd(id, db)) {
                             // this should never happen
                             throw new Exception("unable to add db");
                         }

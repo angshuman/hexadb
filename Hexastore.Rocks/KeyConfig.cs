@@ -18,7 +18,6 @@ namespace Hexastore.Rocks
         private byte[] _sKey;
         private byte[] _pKey;
         private byte[] _oKey;
-
         private byte[] _name;
 
         public KeySegments(string name, string s, string p, TripleObject o)
@@ -29,8 +28,7 @@ namespace Hexastore.Rocks
             O = KeyConfig.GetBytes(o.ToValue());
             IsId = o.IsID ? KeyConfig.ByteTrue : KeyConfig.ByteFalse;
             Index = BitConverter.GetBytes(o.Index);
-            var oTyped = o.ToTypedJSON();
-            Type = BitConverter.GetBytes((ushort)oTyped.Type);
+            Type = BitConverter.GetBytes((int)o.TokenType);
         }
 
         public KeySegments(string name, Triple t) : this(name, t.Subject, t.Predicate, t.Object)
@@ -42,17 +40,17 @@ namespace Hexastore.Rocks
             if (_sKey == null) {
                 var z = KeyConfig.ByteZero;
                 _sKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteS, z, S, z, P, z, Index);
-                _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, Index, z, S);
+                _pKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, S, z, Index);
                 _oKey = KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P, z, Index);
             }
 
             return (_sKey, _pKey, _oKey);
         }
 
-        public byte[] GetOPrefix()
+        public byte[] GetPPrefix()
         {
             var z = KeyConfig.ByteZero;
-            return KeyConfig.ConcatBytes(_name, KeyConfig.ByteO, z, IsId, z, O, z, S, z, P);
+            return KeyConfig.ConcatBytes(_name, KeyConfig.ByteP, z, P, z, IsId, z, O, z, S);
         }
 
         public static byte[] GetNameSKey(string name)
@@ -139,6 +137,11 @@ namespace Hexastore.Rocks
             return Encoding.UTF8.GetBytes(input);
         }
 
+        public static byte[] GetBytes(int input)
+        {
+            return BitConverter.GetBytes(input);
+        }
+
         public static byte[] ConcatBytes(params byte[][] inputs)
         {
             var totalLength = inputs.Sum(x => x.Length);
@@ -197,8 +200,11 @@ namespace Hexastore.Rocks
         public static readonly byte[] ByteOne = new byte[] { 1 };
         public static readonly byte[] ByteFalse = new byte[] { 48 };
         public static readonly byte[] ByteTrue = new byte[] { 49 };
-        public static readonly byte[] ByteS = new byte[] { 46, 83 }; // .S
-        public static readonly byte[] ByteP = new byte[] { 46, 80 }; // .P
-        public static readonly byte[] ByteO = new byte[] { 46, 79 }; // .O
+        public static readonly byte[] ByteS = new byte[] { 46, SMark }; // .S
+        public static readonly byte[] ByteP = new byte[] { 46, PMark }; // .P
+        public static readonly byte[] ByteO = new byte[] { 46, OMark }; // .O
+        public const int SMark = 83;
+        public const int PMark = 80;
+        public const int OMark = 79;
     }
 }

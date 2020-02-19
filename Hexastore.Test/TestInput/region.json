@@ -1,0 +1,939 @@
+[
+  {
+    "id": "idWpITHO3",
+    "description": "r:building:0:floor:0:room:0:sensor:0",
+    "type": "sensor",
+    "name": "sensor 0",
+    "tag": "elegant_almeida",
+    "firmware": "0.3",
+    "temperature": 96.56,
+    "humidity": 81.36,
+    "pressure": 966.01,
+    "marker": {
+      "status": "running",
+      "red": 2.67,
+      "blue": 1.03,
+      "green": 2.77,
+      "location": {
+        "lat": 47.69141,
+        "long": 122.30974
+      }
+    }
+  },
+  {
+    "id": "Q0k2TQxHz",
+    "description": "r:building:0:floor:0:room:0:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 1",
+    "tag": "quizzical_joliot",
+    "firmware": "0.5",
+    "occupancy": 4,
+    "lastMeeting": {
+      "number": 8,
+      "forMinutes": 46
+    },
+    "corner1": {
+      "temperature": 80.99,
+      "humidity": 72.36
+    },
+    "corner2": {
+      "temperature": 66.19,
+      "humidity": 78.59
+    }
+  },
+  {
+    "id": "TSlny6AcU",
+    "description": "r:building:0:floor:0:room:0:sensor:1",
+    "type": "sensor",
+    "name": "sensor 2",
+    "tag": "trusting_proskuriakova",
+    "firmware": "0.5",
+    "temperature": 86.25,
+    "humidity": 74.96,
+    "pressure": 1032.84,
+    "marker": {
+      "status": "error",
+      "red": 7.32,
+      "blue": 6.01,
+      "green": 8.09,
+      "location": {
+        "lat": 47.67271,
+        "long": 122.31343
+      }
+    }
+  },
+  {
+    "id": "RK7sxnNGJ",
+    "description": "r:building:0:floor:0:room:0:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 3",
+    "tag": "cranky_galois",
+    "firmware": "0.3",
+    "occupancy": 1,
+    "lastMeeting": {
+      "number": 6,
+      "forMinutes": 59
+    },
+    "corner1": {
+      "temperature": 79.02,
+      "humidity": 90.06
+    },
+    "corner2": {
+      "temperature": 78.32,
+      "humidity": 81.6
+    }
+  },
+  {
+    "id": "LKMbe7Tja",
+    "description": "r:building:0:floor:0:room:0",
+    "type": "room",
+    "name": "Entity room 0",
+    "tag": "lucid_aryabhata",
+    "sensors": [
+      {
+        "id": "idWpITHO3"
+      },
+      {
+        "id": "Q0k2TQxHz"
+      },
+      {
+        "id": "TSlny6AcU"
+      },
+      {
+        "id": "RK7sxnNGJ"
+      }
+    ]
+  },
+  {
+    "id": "YHzG92WlU",
+    "description": "r:building:0:floor:0:room:1:sensor:0",
+    "type": "sensor",
+    "name": "sensor 4",
+    "tag": "distracted_varahamihira",
+    "firmware": "0.3",
+    "temperature": 79.99,
+    "humidity": 87.37,
+    "pressure": 1033.88,
+    "marker": {
+      "status": "stopped",
+      "red": 5.82,
+      "blue": 1.05,
+      "green": 5.35,
+      "location": {
+        "lat": 47.69312,
+        "long": 122.33671
+      }
+    }
+  },
+  {
+    "id": "1mGIfw19_",
+    "description": "r:building:0:floor:0:room:1:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 5",
+    "tag": "optimistic_chatelet",
+    "firmware": "0.9",
+    "occupancy": 4,
+    "lastMeeting": {
+      "number": 7,
+      "forMinutes": 57
+    },
+    "corner1": {
+      "temperature": 60.77,
+      "humidity": 96.47
+    },
+    "corner2": {
+      "temperature": 55.33,
+      "humidity": 81.6
+    }
+  },
+  {
+    "id": "zEq5v5PTX",
+    "description": "r:building:0:floor:0:room:1:sensor:1",
+    "type": "sensor",
+    "name": "sensor 6",
+    "tag": "modest_boyd",
+    "firmware": "1.1",
+    "temperature": 54.29,
+    "humidity": 70.48,
+    "pressure": 1012.1,
+    "marker": {
+      "status": "running",
+      "red": 0.21,
+      "blue": 8.69,
+      "green": 6.15,
+      "location": {
+        "lat": 47.65749,
+        "long": 122.33081
+      }
+    }
+  },
+  {
+    "id": "Qnj9O8Y1W",
+    "description": "r:building:0:floor:0:room:1:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 7",
+    "tag": "heuristic_minsky",
+    "firmware": "1.1",
+    "occupancy": 3,
+    "lastMeeting": {
+      "number": 4,
+      "forMinutes": 50
+    },
+    "corner1": {
+      "temperature": 95.2,
+      "humidity": 99.17
+    },
+    "corner2": {
+      "temperature": 91.24,
+      "humidity": 89.09
+    }
+  },
+  {
+    "id": "Ny5olxqqL",
+    "description": "r:building:0:floor:0:room:1",
+    "type": "room",
+    "name": "Entity room 1",
+    "tag": "magical_sammet",
+    "sensors": [
+      {
+        "id": "YHzG92WlU"
+      },
+      {
+        "id": "1mGIfw19_"
+      },
+      {
+        "id": "zEq5v5PTX"
+      },
+      {
+        "id": "Qnj9O8Y1W"
+      }
+    ]
+  },
+  {
+    "id": "FQJc8xnHC",
+    "description": "r:building:0:floor:0",
+    "type": "floor",
+    "name": "Entity floor 0",
+    "tag": "priceless_edison",
+    "rooms": [
+      {
+        "id": "LKMbe7Tja"
+      },
+      {
+        "id": "Ny5olxqqL"
+      }
+    ]
+  },
+  {
+    "id": "93HLb6gVL",
+    "description": "r:building:0:floor:1:room:0:sensor:0",
+    "type": "sensor",
+    "name": "sensor 8",
+    "tag": "inspiring_wilson",
+    "firmware": "0.8",
+    "temperature": 86.61,
+    "humidity": 70.21,
+    "pressure": 1090.48,
+    "marker": {
+      "status": "running",
+      "red": 7.1,
+      "blue": 2.38,
+      "green": 5.11,
+      "location": {
+        "lat": 47.69321,
+        "long": 122.39853
+      }
+    }
+  },
+  {
+    "id": "OEFFg3RWO",
+    "description": "r:building:0:floor:1:room:0:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 9",
+    "tag": "inspiring_chatelet",
+    "firmware": "0",
+    "occupancy": 1,
+    "lastMeeting": {
+      "number": 5,
+      "forMinutes": 25
+    },
+    "corner1": {
+      "temperature": 60.67,
+      "humidity": 72.89
+    },
+    "corner2": {
+      "temperature": 87.43,
+      "humidity": 81.81
+    }
+  },
+  {
+    "id": "6OXKIhXlPU",
+    "description": "r:building:0:floor:1:room:0:sensor:1",
+    "type": "sensor",
+    "name": "sensor 10",
+    "tag": "xenodochial_feynman",
+    "firmware": "0",
+    "temperature": 61.72,
+    "humidity": 81.93,
+    "pressure": 1001.3,
+    "marker": {
+      "status": "running",
+      "red": 5.65,
+      "blue": 3.18,
+      "green": 0.89,
+      "location": {
+        "lat": 47.60283,
+        "long": 122.38837
+      }
+    }
+  },
+  {
+    "id": "quHWPfezy4",
+    "description": "r:building:0:floor:1:room:0:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 11",
+    "tag": "epic_hoover",
+    "firmware": "1.9",
+    "occupancy": 0,
+    "lastMeeting": {
+      "number": 8,
+      "forMinutes": 13
+    },
+    "corner1": {
+      "temperature": 68.66,
+      "humidity": 99.52
+    },
+    "corner2": {
+      "temperature": 95.95,
+      "humidity": 93.28
+    }
+  },
+  {
+    "id": "-pp7PD5j3",
+    "description": "r:building:0:floor:1:room:0",
+    "type": "room",
+    "name": "Entity room 2",
+    "tag": "vibrant_buck",
+    "sensors": [
+      {
+        "id": "93HLb6gVL"
+      },
+      {
+        "id": "OEFFg3RWO"
+      },
+      {
+        "id": "6OXKIhXlPU"
+      },
+      {
+        "id": "quHWPfezy4"
+      }
+    ]
+  },
+  {
+    "id": "yyHu9XSMlN",
+    "description": "r:building:0:floor:1:room:1:sensor:0",
+    "type": "sensor",
+    "name": "sensor 12",
+    "tag": "quirky_lehmann",
+    "firmware": "1.2",
+    "temperature": 87.56,
+    "humidity": 82.38,
+    "pressure": 1096.51,
+    "marker": {
+      "status": "running",
+      "red": 8.41,
+      "blue": 5.06,
+      "green": 7.41,
+      "location": {
+        "lat": 47.6686,
+        "long": 122.38028
+      }
+    }
+  },
+  {
+    "id": "XjPoUKv9j9",
+    "description": "r:building:0:floor:1:room:1:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 13",
+    "tag": "upbeat_yonath",
+    "firmware": "0.8",
+    "occupancy": 6,
+    "lastMeeting": {
+      "number": 2,
+      "forMinutes": 59
+    },
+    "corner1": {
+      "temperature": 97.05,
+      "humidity": 93.83
+    },
+    "corner2": {
+      "temperature": 79.8,
+      "humidity": 73.24
+    }
+  },
+  {
+    "id": "M4Dx0i3gor",
+    "description": "r:building:0:floor:1:room:1:sensor:1",
+    "type": "sensor",
+    "name": "sensor 14",
+    "tag": "gallant_solomon",
+    "firmware": "0.8",
+    "temperature": 69.65,
+    "humidity": 93.69,
+    "pressure": 1020.59,
+    "marker": {
+      "status": "running",
+      "red": 8.1,
+      "blue": 2.7,
+      "green": 7.99,
+      "location": {
+        "lat": 47.69885,
+        "long": 122.37607
+      }
+    }
+  },
+  {
+    "id": "PYaUd0y1fB",
+    "description": "r:building:0:floor:1:room:1:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 15",
+    "tag": "modest_montalcini",
+    "firmware": "0.2",
+    "occupancy": 3,
+    "lastMeeting": {
+      "number": 1,
+      "forMinutes": 41
+    },
+    "corner1": {
+      "temperature": 79.3,
+      "humidity": 83.84
+    },
+    "corner2": {
+      "temperature": 62.53,
+      "humidity": 72.36
+    }
+  },
+  {
+    "id": "OgX9Hh7w2Q",
+    "description": "r:building:0:floor:1:room:1",
+    "type": "room",
+    "name": "Entity room 3",
+    "tag": "recursing_johnson",
+    "sensors": [
+      {
+        "id": "yyHu9XSMlN"
+      },
+      {
+        "id": "XjPoUKv9j9"
+      },
+      {
+        "id": "M4Dx0i3gor"
+      },
+      {
+        "id": "PYaUd0y1fB"
+      }
+    ]
+  },
+  {
+    "id": "ADPIbl9pK",
+    "description": "r:building:0:floor:1",
+    "type": "floor",
+    "name": "Entity floor 1",
+    "tag": "sharp_blackwell",
+    "rooms": [
+      {
+        "id": "-pp7PD5j3"
+      },
+      {
+        "id": "OgX9Hh7w2Q"
+      }
+    ]
+  },
+  {
+    "id": "zKbQyTeF",
+    "description": "r:building:0",
+    "type": "building",
+    "name": "Entity building 0",
+    "tag": "serene_cannon",
+    "floors": [
+      {
+        "id": "FQJc8xnHC"
+      },
+      {
+        "id": "ADPIbl9pK"
+      }
+    ]
+  },
+  {
+    "id": "JtG5cell61",
+    "description": "r:building:1:floor:0:room:0:sensor:0",
+    "type": "sensor",
+    "name": "sensor 16",
+    "tag": "agitated_yonath",
+    "firmware": "1.8",
+    "temperature": 99.26,
+    "humidity": 70.51,
+    "pressure": 1091.66,
+    "marker": {
+      "status": "running",
+      "red": 2.15,
+      "blue": 4.7,
+      "green": 4.77,
+      "location": {
+        "lat": 47.6866,
+        "long": 122.33587
+      }
+    }
+  },
+  {
+    "id": "0oWiC7LLv8",
+    "description": "r:building:1:floor:0:room:0:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 17",
+    "tag": "jolly_fermi",
+    "firmware": "0.3",
+    "occupancy": 2,
+    "lastMeeting": {
+      "number": 3,
+      "forMinutes": 35
+    },
+    "corner1": {
+      "temperature": 89.72,
+      "humidity": 76.51
+    },
+    "corner2": {
+      "temperature": 56.22,
+      "humidity": 81.44
+    }
+  },
+  {
+    "id": "iMICqjzjf3",
+    "description": "r:building:1:floor:0:room:0:sensor:1",
+    "type": "sensor",
+    "name": "sensor 18",
+    "tag": "tender_mclean",
+    "firmware": "1.2",
+    "temperature": 88.95,
+    "humidity": 72.59,
+    "pressure": 925.12,
+    "marker": {
+      "status": "running",
+      "red": 2.66,
+      "blue": 4.48,
+      "green": 0.35,
+      "location": {
+        "lat": 47.66545,
+        "long": 122.36457
+      }
+    }
+  },
+  {
+    "id": "8BTyth-lV5",
+    "description": "r:building:1:floor:0:room:0:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 19",
+    "tag": "tender_taussig",
+    "firmware": "0.3",
+    "occupancy": 8,
+    "lastMeeting": {
+      "number": 6,
+      "forMinutes": 46
+    },
+    "corner1": {
+      "temperature": 56.97,
+      "humidity": 82.32
+    },
+    "corner2": {
+      "temperature": 80.84,
+      "humidity": 89.77
+    }
+  },
+  {
+    "id": "yQcRJsuI30",
+    "description": "r:building:1:floor:0:room:0",
+    "type": "room",
+    "name": "Entity room 4",
+    "tag": "optimistic_meninsky",
+    "sensors": [
+      {
+        "id": "JtG5cell61"
+      },
+      {
+        "id": "0oWiC7LLv8"
+      },
+      {
+        "id": "iMICqjzjf3"
+      },
+      {
+        "id": "8BTyth-lV5"
+      }
+    ]
+  },
+  {
+    "id": "2IiCBDI9em",
+    "description": "r:building:1:floor:0:room:1:sensor:0",
+    "type": "sensor",
+    "name": "sensor 20",
+    "tag": "angry_wu",
+    "firmware": "0.5",
+    "temperature": 51.6,
+    "humidity": 95.86,
+    "pressure": 919.84,
+    "marker": {
+      "status": "stopped",
+      "red": 0.13,
+      "blue": 4.4,
+      "green": 2.33,
+      "location": {
+        "lat": 47.62832,
+        "long": 122.34312
+      }
+    }
+  },
+  {
+    "id": "3M65AmTysH",
+    "description": "r:building:1:floor:0:room:1:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 21",
+    "tag": "reverent_khayyam",
+    "firmware": "0.6",
+    "occupancy": 2,
+    "lastMeeting": {
+      "number": 4,
+      "forMinutes": 46
+    },
+    "corner1": {
+      "temperature": 68.74,
+      "humidity": 80.74
+    },
+    "corner2": {
+      "temperature": 68.57,
+      "humidity": 74.16
+    }
+  },
+  {
+    "id": "ttjGfE9T98",
+    "description": "r:building:1:floor:0:room:1:sensor:1",
+    "type": "sensor",
+    "name": "sensor 22",
+    "tag": "flamboyant_poincare",
+    "firmware": "0.5",
+    "temperature": 91.33,
+    "humidity": 77.63,
+    "pressure": 921.64,
+    "marker": {
+      "status": "running",
+      "red": 8.24,
+      "blue": 4.31,
+      "green": 0.31,
+      "location": {
+        "lat": 47.65527,
+        "long": 122.39737
+      }
+    }
+  },
+  {
+    "id": "5WiQns6fP2",
+    "description": "r:building:1:floor:0:room:1:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 23",
+    "tag": "jolly_villani",
+    "firmware": "0.8",
+    "occupancy": 8,
+    "lastMeeting": {
+      "number": 7,
+      "forMinutes": 25
+    },
+    "corner1": {
+      "temperature": 51.39,
+      "humidity": 85.73
+    },
+    "corner2": {
+      "temperature": 85.65,
+      "humidity": 99.25
+    }
+  },
+  {
+    "id": "bdxlBCCA48",
+    "description": "r:building:1:floor:0:room:1",
+    "type": "room",
+    "name": "Entity room 5",
+    "tag": "quirky_feynman",
+    "sensors": [
+      {
+        "id": "2IiCBDI9em"
+      },
+      {
+        "id": "3M65AmTysH"
+      },
+      {
+        "id": "ttjGfE9T98"
+      },
+      {
+        "id": "5WiQns6fP2"
+      }
+    ]
+  },
+  {
+    "id": "fR5pgeHPpH",
+    "description": "r:building:1:floor:0",
+    "type": "floor",
+    "name": "Entity floor 2",
+    "tag": "romantic_fermi",
+    "rooms": [
+      {
+        "id": "yQcRJsuI30"
+      },
+      {
+        "id": "bdxlBCCA48"
+      }
+    ]
+  },
+  {
+    "id": "nX4tqNfX8t",
+    "description": "r:building:1:floor:1:room:0:sensor:0",
+    "type": "sensor",
+    "name": "sensor 24",
+    "tag": "relaxed_edison",
+    "firmware": "0.1",
+    "temperature": 91.97,
+    "humidity": 84.84,
+    "pressure": 1093.1,
+    "marker": {
+      "status": "running",
+      "red": 4.76,
+      "blue": 9.81,
+      "green": 7.56,
+      "location": {
+        "lat": 47.66061,
+        "long": 122.39898
+      }
+    }
+  },
+  {
+    "id": "OJBtYmHSUV",
+    "description": "r:building:1:floor:1:room:0:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 25",
+    "tag": "cool_williams",
+    "firmware": "1.6",
+    "occupancy": 2,
+    "lastMeeting": {
+      "number": 8,
+      "forMinutes": 20
+    },
+    "corner1": {
+      "temperature": 82.24,
+      "humidity": 81.96
+    },
+    "corner2": {
+      "temperature": 56.32,
+      "humidity": 95.55
+    }
+  },
+  {
+    "id": "x4dbR-Ct1f",
+    "description": "r:building:1:floor:1:room:0:sensor:1",
+    "type": "sensor",
+    "name": "sensor 26",
+    "tag": "condescending_gagarin",
+    "firmware": "1.9",
+    "temperature": 50.65,
+    "humidity": 93.23,
+    "pressure": 1099.62,
+    "marker": {
+      "status": "stopped",
+      "red": 4.04,
+      "blue": 7.15,
+      "green": 4.51,
+      "location": {
+        "lat": 47.63456,
+        "long": 122.38919
+      }
+    }
+  },
+  {
+    "id": "oOUc-TcEJc",
+    "description": "r:building:1:floor:1:room:0:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 27",
+    "tag": "mystifying_cray",
+    "firmware": "1.3",
+    "occupancy": 0,
+    "lastMeeting": {
+      "number": 1,
+      "forMinutes": 34
+    },
+    "corner1": {
+      "temperature": 99.14,
+      "humidity": 84.59
+    },
+    "corner2": {
+      "temperature": 51.09,
+      "humidity": 99.23
+    }
+  },
+  {
+    "id": "rTZeLk-RE3",
+    "description": "r:building:1:floor:1:room:0",
+    "type": "room",
+    "name": "Entity room 6",
+    "tag": "objective_tharp",
+    "sensors": [
+      {
+        "id": "nX4tqNfX8t"
+      },
+      {
+        "id": "OJBtYmHSUV"
+      },
+      {
+        "id": "x4dbR-Ct1f"
+      },
+      {
+        "id": "oOUc-TcEJc"
+      }
+    ]
+  },
+  {
+    "id": "mbK4DQ3LFC",
+    "description": "r:building:1:floor:1:room:1:sensor:0",
+    "type": "sensor",
+    "name": "sensor 28",
+    "tag": "mystifying_turing",
+    "firmware": "1.6",
+    "temperature": 88.97,
+    "humidity": 82.23,
+    "pressure": 998.86,
+    "marker": {
+      "status": "running",
+      "red": 1.04,
+      "blue": 2.54,
+      "green": 6.6,
+      "location": {
+        "lat": 47.60749,
+        "long": 122.34219
+      }
+    }
+  },
+  {
+    "id": "WGX6OiH9rQ",
+    "description": "r:building:1:floor:1:room:1:sensor:0:occupancy",
+    "type": "occupancy",
+    "name": "sensor 29",
+    "tag": "determined_mclean",
+    "firmware": "0.4",
+    "occupancy": 8,
+    "lastMeeting": {
+      "number": 6,
+      "forMinutes": 43
+    },
+    "corner1": {
+      "temperature": 92.89,
+      "humidity": 99.37
+    },
+    "corner2": {
+      "temperature": 75.31,
+      "humidity": 89.1
+    }
+  },
+  {
+    "id": "VH9XjPtV4T",
+    "description": "r:building:1:floor:1:room:1:sensor:1",
+    "type": "sensor",
+    "name": "sensor 30",
+    "tag": "musing_bardeen",
+    "firmware": "0.3",
+    "temperature": 62.86,
+    "humidity": 74.94,
+    "pressure": 1049.93,
+    "marker": {
+      "status": "running",
+      "red": 5.87,
+      "blue": 3.73,
+      "green": 4.57,
+      "location": {
+        "lat": 47.67247,
+        "long": 122.37604
+      }
+    }
+  },
+  {
+    "id": "YAoQ_mv3cE",
+    "description": "r:building:1:floor:1:room:1:sensor:1:occupancy",
+    "type": "occupancy",
+    "name": "sensor 31",
+    "tag": "sleepy_bell",
+    "firmware": "1.5",
+    "occupancy": 4,
+    "lastMeeting": {
+      "number": 5,
+      "forMinutes": 52
+    },
+    "corner1": {
+      "temperature": 76,
+      "humidity": 74.75
+    },
+    "corner2": {
+      "temperature": 79.42,
+      "humidity": 71.03
+    }
+  },
+  {
+    "id": "txhodHEy5G",
+    "description": "r:building:1:floor:1:room:1",
+    "type": "room",
+    "name": "Entity room 7",
+    "tag": "adoring_bartik",
+    "sensors": [
+      {
+        "id": "mbK4DQ3LFC"
+      },
+      {
+        "id": "WGX6OiH9rQ"
+      },
+      {
+        "id": "VH9XjPtV4T"
+      },
+      {
+        "id": "YAoQ_mv3cE"
+      }
+    ]
+  },
+  {
+    "id": "i8ZQZJ1NMX",
+    "description": "r:building:1:floor:1",
+    "type": "floor",
+    "name": "Entity floor 3",
+    "tag": "sleepy_curran",
+    "rooms": [
+      {
+        "id": "rTZeLk-RE3"
+      },
+      {
+        "id": "txhodHEy5G"
+      }
+    ]
+  },
+  {
+    "id": "oBZ_JoNOBC",
+    "description": "r:building:1",
+    "type": "building",
+    "name": "Entity building 1",
+    "tag": "stoic_wozniak",
+    "floors": [
+      {
+        "id": "fR5pgeHPpH"
+      },
+      {
+        "id": "i8ZQZJ1NMX"
+      }
+    ]
+  },
+  {
+    "id": "stats",
+    "building": 2,
+    "floor": 4,
+    "room": 8,
+    "sensor": 32
+  }
+]

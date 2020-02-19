@@ -89,7 +89,7 @@ namespace Hexastore.Test
                 {
                     new LinkQuery
                     {
-                        Path = "contains#values",
+                        Path = "contains/values",
                         Target = new ObjectQueryModel
                         {
                             Filter = new Dictionary<string, QueryUnit>()
@@ -124,7 +124,7 @@ namespace Hexastore.Test
                 {
                      new LinkQuery
                      {
-                            Path = "contains#values",
+                            Path = "contains/values",
                             Target = new ObjectQueryModel
                             {
                                 Filter = new Dictionary<string, QueryUnit>()
@@ -196,7 +196,7 @@ namespace Hexastore.Test
                 {
                     new LinkQuery
                     {
-                        Path = "contains#values",
+                        Path = "contains/values",
                         Target = new ObjectQueryModel
                         {
                             Filter = new Dictionary<string, QueryUnit>()
@@ -230,7 +230,7 @@ namespace Hexastore.Test
                 {
                     new LinkQuery
                     {
-                        Path = "contains#values",
+                        Path = "contains/values",
                         Target = new ObjectQueryModel
                         {
                             Id = "800"
@@ -262,7 +262,7 @@ namespace Hexastore.Test
                 {
                     new LinkQuery
                     {
-                        Path = "contains#values",
+                        Path = "contains/values",
                         Target = new ObjectQueryModel
                         {
                             Filter = new Dictionary<string, QueryUnit>()

@@ -18,13 +18,13 @@ namespace Hexastore.Web.EventHubs
         public string OperationId { get; set; }
 
         [JsonProperty("data")]
-        public string Data { get; set; }
+        public JToken Data { get; set; }
 
         [JsonProperty("strict")]
         public bool Strict { get; set; }
 
         [JsonProperty("partitionId")]
-        public int PartitionId { get; set; }
+        public string PartitionId { get; set; }
 
         [JsonProperty("storeId")]
         public string StoreId { get; set; }

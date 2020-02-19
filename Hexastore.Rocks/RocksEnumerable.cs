@@ -58,7 +58,8 @@ namespace Hexastore.Rocks
         {
             get
             {
-                return _currentTripleFunction(_iterator);
+                var t = (_iterator.Key(), _iterator.Value());
+                return t.ToTriple();
             }
         }
 

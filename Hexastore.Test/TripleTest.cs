@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Hexastore.Graph;
 using Hexastore.Processor;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -217,10 +217,12 @@ namespace Hexastore.Test
             Assert.AreEqual(o1.Count(), 1);
             CollectionAssert.Contains(o1, new Triple("s1", "p1", "o1"));
 
-            var o1v = _set.O(TripleObject.FromData("o3", true)).ToArray();
-            Assert.AreEqual(o1v.Count(), 2);
-            CollectionAssert.Contains(o1v, new Triple("s1", "p1", TripleObject.FromData("o3", true)));
-            CollectionAssert.Contains(o1v, new Triple("s2", "p1", TripleObject.FromData("o3", true)));
+            // without the fOSP index the below is disabled
+            // ############################################
+            // var o1v = _set.O(TripleObject.FromData("o1")).ToArray();
+            // Assert.AreEqual(o1v.Count(), 2);
+            // CollectionAssert.Contains(o1v, new Triple("s1", "p1", TripleObject.FromData("o1")));
+            // CollectionAssert.Contains(o1v, new Triple("s2", "p1", TripleObject.FromData("o1")));
 
             var c3 = _set.O("c3").ToArray();
             Assert.AreEqual(c3.Count(), 1);
@@ -257,10 +259,12 @@ namespace Hexastore.Test
             CollectionAssert.Contains(o1s1, new Triple("s1", "p2", "o1"));
             CollectionAssert.Contains(o1s1, new Triple("s1", "p3", "o1"));
 
-            var o1vs1 = _set.OS(TripleObject.FromData("o2", true), "s1").ToArray();
-            Assert.AreEqual(o1vs1.Count(), 2);
-            CollectionAssert.Contains(o1vs1, new Triple("s1", "p1", TripleObject.FromData("o2", true)));
-            CollectionAssert.Contains(o1vs1, new Triple("s1", "p2", TripleObject.FromData("o2", true)));
+            // without the fOSP index the below is disabled
+            // ############################################
+            // var o1vs1 = _set.OS(TripleObject.FromData("o1"), "s1").ToArray();
+            // Assert.AreEqual(o1vs1.Count(), 2);
+            // CollectionAssert.Contains(o1vs1, new Triple("s1", "p1", TripleObject.FromData("o1")));
+            // CollectionAssert.Contains(o1vs1, new Triple("s1", "p2", TripleObject.FromData("o1")));
 
             var c3s2 = _set.OS("c3", "s2").ToArray();
             Assert.AreEqual(c3s2.Count(), 1);
