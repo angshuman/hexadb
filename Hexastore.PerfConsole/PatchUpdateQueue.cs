@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Hexastore.PerfConsole
 {
-    [SimpleJob(RunStrategy.Monitoring, invocationCount: 20)]
+    [SimpleJob(RunStrategy.Monitoring, invocationCount: 5)]
     public class PatchUpdateQueue
     {
         private TestFolder _testFolder;
@@ -26,8 +26,8 @@ namespace Hexastore.PerfConsole
         private EventSender _eventSender;
         private List<string> _ids = new List<string>();
         private List<string> _dataPoints = new List<string>();
-        private const int _updateCount = 20;
-        private const int _maxIds = 10;
+        private const int _updateCount = 100;
+        private const int _maxIds = 128;
         private const int _maxPoints = 3;
 
         [GlobalSetup]
@@ -63,7 +63,7 @@ namespace Hexastore.PerfConsole
         }
 
         [Benchmark]
-        public async Task RunTest()
+        public async Task RunTestWithQueue()
         {
             var storeId = "test";
             var points = new Dictionary<string, double>();
