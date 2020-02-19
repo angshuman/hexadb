@@ -35,7 +35,7 @@ namespace Hexastore.Rocks
             IEnumerable<Triple> idEnum = new RocksEnumerable(_db, start, end, (iterator) =>
             {
                 return iterator.Next();
-            }, (iterator) => { return iterator.IteratorToTriple(); });
+            });
 
             foreach (var item in idEnum) {
                 yield return item.Object;

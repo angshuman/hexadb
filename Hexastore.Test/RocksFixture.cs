@@ -24,11 +24,6 @@ namespace Hexastore.Test
 
         public RocksFixture()
         {
-            TestDirectory = $"./{Guid.NewGuid()}";
-            if (Directory.Exists(TestDirectory)) {
-                Directory.Delete(TestDirectory, true);
-            }
-            Directory.CreateDirectory(testDirectory);
             TestFolder = new TestFolder();
             GraphProvider = new RocksGraphProvider(Mock.Of<ILogger<RocksGraphProvider>>(), TestFolder.Root);
             StoreProvider = new SetProvider(GraphProvider);
