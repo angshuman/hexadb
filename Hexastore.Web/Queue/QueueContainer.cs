@@ -15,13 +15,13 @@ namespace Hexastore.Web.Queue
         private readonly int _count = 32;
         private bool _running = true;
 
-        public QueueContainer(EventReceiver eventReceiver, ILogger<QueueContainer> logger, StoreError storeError)
+        public QueueContainer(EventReceiver eventReceiver, ILogger<QueueContainer> logger, StoreError storeError, int maxQueueSize = 0)
         {
             _logger = logger;
             _eventReceiver = eventReceiver;
             _queueWriters = new QueueWriter[_count];
             for(int i=0; i< _count; i++) {
-                _queueWriters[i] = new QueueWriter(eventReceiver, logger, storeError);
+                _queueWriters[i] = new QueueWriter(eventReceiver, logger, storeError, maxQueueSize);
             }
             _ = _eventReceiver.LogCount();
             _ = LogQueueLength();
@@ -33,6 +33,11 @@ namespace Hexastore.Web.Queue
             foreach(var q in _queueWriters) {
                 q.Dispose();
             }
+        }
+
+        public int Count()
+        {
+            return _queueWriters.Sum(x => x.Length);
         }
 
         public void Send(StoreEvent storeEvent)

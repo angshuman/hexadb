@@ -2,13 +2,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Hexastore.Errors;
 using Hexastore.Processor;
 using Hexastore.Resoner;
 using Hexastore.Rocks;
 using Hexastore.TestCommon;
+using Hexastore.Web;
+using Hexastore.Web.EventHubs;
+using Hexastore.Web.Queue;
 using Microsoft.Extensions.Logging;
+using RocksDbSharp;
 
 namespace Hexastore.ScaleConsole
 {
@@ -16,13 +21,14 @@ namespace Hexastore.ScaleConsole
     {
         private static readonly Random _random = new Random(234234);
 
-        public static void RunTest(int appCount, int deviceCount, int devicePropertyCount, int sendCount, int senderThreadCount)
+        public static void RunTest(int appCount, int deviceCount, int devicePropertyCount, int sendCount, int senderThreadCount, bool tryOptimizeRocks)
         {
+            Console.WriteLine("Creating Messages");
             var apps = new List<string>(appCount);
             var deviceIds = new List<string>(deviceCount);
             var devicePropertyNames = new List<string>(devicePropertyCount);
             var tasks = new List<Task>();
-            var sendQueue = new ConcurrentQueue<TestMessage>();
+            var sendQueue = new ConcurrentQueue<StoreEvent>();
 
             while (apps.Count < appCount)
             {
@@ -41,13 +47,30 @@ namespace Hexastore.ScaleConsole
 
             using (var testFolder = new TestFolder())
             {
-                var factory = new LoggerFactory();
+                var factory = LoggerFactory.Create(builder => builder.AddConsole());
                 var logger = factory.CreateLogger<RocksGraphProvider>();
                 var storeLogger = factory.CreateLogger<StoreProcessor>();
-                var provider = new RocksGraphProvider(logger, testFolder);
+
+                var dbOptions = new DbOptions();
+                var provider = !tryOptimizeRocks ?
+                    new RocksGraphProvider(logger, testFolder) :
+                    new RocksGraphProvider(logger, testFolder, dbOptions.SetCreateIfMissing(true)
+                    .SetAllowConcurrentMemtableWrite(true)
+                    //.SetAllowMmapReads(true)
+                    //.SetAllowMmapWrites(true)
+                    //.SetUseFsync(0)
+                    .IncreaseParallelism(Environment.ProcessorCount)
+                    .SetMaxBackgroundCompactions(Environment.ProcessorCount)
+                    .SetMaxBackgroundFlushes(Environment.ProcessorCount));
+
                 var storeProvider = new SetProvider(provider);
-                var storeOperationFactory = new StoreOperationFactory();
-                var storeProcessor = new StoreProcessor(storeProvider, new Reasoner(), storeOperationFactory, storeLogger);
+                var storeProcessor = new StoreProcessor(storeProvider, new Reasoner(), storeLogger);
+                var storeConfig = new StoreConfig();
+                var storeError = new StoreError();
+                var eventReceiver1 = new EventReceiver(storeProcessor, null, storeConfig, factory.CreateLogger<EventReceiver>());
+                var eventReceiver = eventReceiver1;
+                var queueContainer = new QueueContainer(eventReceiver, factory.CreateLogger<QueueContainer>(), storeError, 1_000_000);
+                var eventSender = new EventSender(queueContainer, null, null, storeConfig);
 
                 for (var i = 0; i < sendCount; i++)
                 {
@@ -55,12 +78,15 @@ namespace Hexastore.ScaleConsole
                     {
                         foreach (var app in apps)
                         {
-                            sendQueue.Enqueue(new TestMessage()
+                            var points = GetPropertyValues(devicePropertyNames, _random);
+                            var e = new StoreEvent
                             {
-                                App = app,
-                                Device = id,
-                                PropertyNames = devicePropertyNames
-                            });
+                                Operation = EventType.PATCH_JSON,
+                                Data = JsonGenerator.GenerateTelemetry(id, points),
+                                PartitionId = id,
+                                StoreId = app
+                            };
+                            sendQueue.Enqueue(e);
                         }
                     }
                 }
@@ -71,28 +97,27 @@ namespace Hexastore.ScaleConsole
 
                 for (var i = 0; i < senderThreadCount; i++)
                 {
-                    tasks.Add(Task.Run(() => RunSender(storeProcessor, sendQueue)));
+                    tasks.Add(Task.Run(() => RunSender(eventSender, sendQueue)));
                 }
 
                 Task.WhenAll(tasks).Wait();
 
-                Console.WriteLine($"Completed in {timer.Elapsed}");
+                Console.WriteLine($"Completed writing to queues in {timer.Elapsed}");
+
+                while (queueContainer.Count() > 0)
+                {
+                    Thread.Sleep(1000);
+                }
+                Console.WriteLine($"Completed writing to storage in {timer.Elapsed}");
             }
         }
 
-        private static void RunSender(StoreProcessor storeProcessor, ConcurrentQueue<TestMessage> sendQueue)
+        private static async void RunSender(EventSender eventSender, ConcurrentQueue<StoreEvent> sendQueue)
         {
             while (sendQueue.TryDequeue(out var message))
             {
-                SendEvent(storeProcessor, message);
+                await eventSender.SendMessage(message);
             }
-        }
-
-        private static void SendEvent(StoreProcessor storeProcessor, TestMessage message)
-        {
-            var points = GetPropertyValues(message.PropertyNames, _random);
-            var json = JsonGenerator.GenerateTelemetry(message.Device, points);
-            storeProcessor.PatchJson(message.App, json);
         }
 
         private static Dictionary<string, double> GetPropertyValues(List<string> devicePropertyNames, Random random)

@@ -16,14 +16,16 @@ namespace Hexastore.Web.Queue
         private readonly ILogger _logger;
         private readonly Task _task;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-        private readonly int MaxQueueSize = 4096;
+        private readonly int DefaultMaxQueueSize = 4096;
+        private readonly int _maxQueueSize;
 
-        public QueueWriter(EventReceiver eventReceiver, ILogger logger, StoreError storeError)
+        public QueueWriter(EventReceiver eventReceiver, ILogger logger, StoreError storeError, int maxQueueSize)
         {
             _eventReceiver = eventReceiver;
             _storeError = storeError;
             _queue = new BlockingCollection<StoreEvent>();
             _logger = logger;
+            _maxQueueSize = maxQueueSize > 0 ? maxQueueSize : DefaultMaxQueueSize;
             _task = StartReader();
         }
 
@@ -37,7 +39,7 @@ namespace Hexastore.Web.Queue
 
         public void Send(StoreEvent storeEvent)
         {
-            if (_queue.Count > MaxQueueSize) {
+            if (_queue.Count > _maxQueueSize) {
                 throw _storeError.MaxQueueSize;
             }
             _queue.Add(storeEvent);
