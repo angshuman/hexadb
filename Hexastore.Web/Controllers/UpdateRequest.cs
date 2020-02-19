@@ -9,8 +9,8 @@ namespace Hexastore.Web.Controllers
 {
     public class UpdateRequest
     {
-        [JsonProperty("partitionId")]
-        public string PartitionId { get; set; }
+        [JsonProperty("partitionKey")]
+        public string PartitionKey { get; set; }
 
         [JsonProperty("data")]
         public JObject Data { get; set; }

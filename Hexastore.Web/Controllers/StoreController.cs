@@ -82,7 +82,7 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}/ingest")]
         public async Task<IActionResult> Ingest(string storeId, [FromBody]UpdateRequest req)
         {
-            _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store: {store} partition: {partitionId}", storeId, req.PartitionId);
+            _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store: {store} partition: {partitionId}", storeId, req.PartitionKey);
             string url = req.Data?["url"]?.ToString();
             if (string.IsNullOrEmpty(url)) {
                 return BadRequest();
@@ -103,7 +103,7 @@ namespace Hexastore.Web.Controllers
                                 Operation = EventType.POST,
                                 Strict = true,
                                 Data = batch,
-                                PartitionId = req.PartitionId
+                                PartitionId = req.PartitionKey
                             };
                             await SendEvent(storeId, e);
                             _logger.LogInformation("Batch ingestion", batch.Count);
@@ -115,7 +115,8 @@ namespace Hexastore.Web.Controllers
                         var e = new StoreEvent {
                             Operation = EventType.POST,
                             Strict = true,
-                            Data = batch
+                            Data = batch,
+                            PartitionId = req.PartitionKey
                         };
                         await SendEvent(storeId, e);
                         _logger.LogInformation("Batch ingestion", batch.Count);
@@ -139,7 +140,7 @@ namespace Hexastore.Web.Controllers
                         Operation = EventType.POST,
                         Strict = strict,
                         Data = req.Data,
-                        PartitionId = req.PartitionId
+                        PartitionId = req.PartitionKey
                     };
                     await SendEvent(storeId, e);
                 }
@@ -158,7 +159,7 @@ namespace Hexastore.Web.Controllers
                     var e = new StoreEvent {
                         Operation = EventType.PATCH_JSON,
                         Data = req.Data,
-                        PartitionId = req.PartitionId
+                        PartitionId = req.PartitionKey
                     };
                     await SendEvent(storeId, e);
                 }
@@ -177,7 +178,7 @@ namespace Hexastore.Web.Controllers
                     var e = new StoreEvent {
                         Operation = EventType.PATCH_TRIPLE,
                         Data = req.Data,
-                        PartitionId = req.PartitionId
+                        PartitionId = req.PartitionKey
                     };
                     await SendEvent(storeId, e);
                 }
@@ -197,7 +198,7 @@ namespace Hexastore.Web.Controllers
                     var e = new StoreEvent {
                         Operation = EventType.DELETE,
                         Data = req.Data,
-                        PartitionId = req.PartitionId
+                        PartitionId = req.PartitionKey
                     };
                     await SendEvent(storeId, e);
                 }
