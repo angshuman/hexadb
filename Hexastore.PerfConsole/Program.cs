@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
 
 namespace Hexastore.PerfConsole
 {
@@ -9,10 +10,11 @@ namespace Hexastore.PerfConsole
             // These can be executed with:
             // dotnet run -c Release
             // Results will be in Hexastore.PerfConsole\BenchmarkDotNet.Artifacts\results
-            BenchmarkRunner.Run<PatchAddNew>();
-            BenchmarkRunner.Run<PatchUpdate>();
-            BenchmarkRunner.Run<PatchUpdateSingle>();
-            BenchmarkRunner.Run<PatchUpdateNoChange>();
+            //BenchmarkRunner.Run<PatchAddNew>();
+            //BenchmarkRunner.Run<PatchUpdate>();
+            //BenchmarkRunner.Run<PatchUpdateSingle>();
+            //BenchmarkRunner.Run<PatchUpdateNoChange>();
+            BenchmarkRunner.Run<PatchUpdateQueue>();
         }
     }
 }
