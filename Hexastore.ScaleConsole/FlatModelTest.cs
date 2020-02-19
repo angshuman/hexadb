@@ -67,8 +67,7 @@ namespace Hexastore.ScaleConsole
                 var storeProcessor = new StoreProcessor(storeProvider, new Reasoner(), storeLogger);
                 var storeConfig = new StoreConfig();
                 var storeError = new StoreError();
-                var eventReceiver1 = new EventReceiver(storeProcessor, null, storeConfig, factory.CreateLogger<EventReceiver>());
-                var eventReceiver = eventReceiver1;
+                var eventReceiver = new EventReceiver(storeProcessor, null, storeConfig, factory.CreateLogger<EventReceiver>());
                 var queueContainer = new QueueContainer(eventReceiver, factory.CreateLogger<QueueContainer>(), storeError, 1_000_000);
                 var eventSender = new EventSender(queueContainer, null, null, storeConfig);
 
