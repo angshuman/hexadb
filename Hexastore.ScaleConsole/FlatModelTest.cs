@@ -101,10 +101,11 @@ namespace Hexastore.ScaleConsole
 
                 Console.WriteLine($"Completed writing to queues in {timer.Elapsed}");
 
-                while (true) {
+                while (queueContainer.Count() > 0) {
                     Thread.Sleep(1000);
-                    // Queue Writers don't have a way to signal back they are done yet, so wait here indefinitely and look at logs for now
                 }
+                Console.WriteLine($"Completed writing to storage in {timer.Elapsed}");
+
             }
         }
 

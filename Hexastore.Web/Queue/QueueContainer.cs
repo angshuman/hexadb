@@ -42,6 +42,11 @@ namespace Hexastore.Web.Queue
             _queueWriters[partitionId].Send(storeEvent);
         }
 
+        public int Count()
+        {
+            return _queueWriters.Sum(x => x.Length);
+        }
+
         private async Task LogQueueLength()
         {
             while (_running) {
