@@ -1,0 +1,14 @@
+<Project ToolsVersion="15.0">
+  <!-- Nuspec defaults -->
+  <PropertyGroup>
+    <Version>1.0.0-beta.5</Version>
+    <Authors>angshuman,jobeland,emgarten</Authors>
+    <PackageProjectUrl>https://github.com/angshuman/hexadb</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/angshuman/hexadb</RepositoryUrl>
+    <PackageTags>triplestore,triple-store,rocksdb,graphdb,jsonld,linked-data,graph,triples,nested-objects</PackageTags>
+    <Description>A schemaless graph database based on RocksDb</Description>
+    <Copyright>Copyright © 2020 Angshuman Sarkar</Copyright>
+  </PropertyGroup>
+</Project>
