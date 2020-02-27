@@ -11,19 +11,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Hexastore.Web.Errors;
 using Microsoft.Extensions.Logging;
+using Hexastore.Scripting;
 
 namespace Hexastore.Processor
 {
     public class StoreProcessor : IStoreProcesor
     {
-        private readonly IStoreProvider _setProvider;
+        private readonly IStoreProvider _storeProvider;
         private readonly IReasoner _reasoner;
         private readonly StoreError _storeErrors;
+        private readonly ScriptHost _scriptHost;
         private readonly ILogger<StoreProcessor> _logger;
 
-        public StoreProcessor(IStoreProvider setProvider, IReasoner reasoner, ILogger<StoreProcessor> logger)
+        public StoreProcessor(IStoreProvider storeProvider, IReasoner reasoner, ILogger<StoreProcessor> logger)
         {
-            _setProvider = setProvider;
+            _storeProvider = storeProvider;
             _reasoner = reasoner;
             _storeErrors = new StoreError();
             _logger = logger;
@@ -225,7 +227,7 @@ namespace Hexastore.Processor
                     throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
                 }
 
-                var result = new ObjectQueryExecutor().Query(queryModel, data);
+                var result = new ObjectQueryExecutor(_scriptHost, storeId).Query(queryModel, data);
                 dynamic response = new {
                     values = result.Values?.Select(x => {
                         var expanded = GraphOperator.Expand(data, x.Subject, level, expand);
@@ -245,7 +247,7 @@ namespace Hexastore.Processor
 
         private (IStoreGraph, IStoreGraph, IStoreGraph) GetSetGraphs(string storeId)
         {
-            var set = _setProvider.GetOrAdd(storeId);
+            var set = _storeProvider.GetOrAdd(storeId);
             var data = set.GetGraph(GraphType.Data);
             var infer = set.GetGraph(GraphType.Infer);
             var meta = set.GetGraph(GraphType.Meta);

@@ -2,35 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Hexastore.Graph;
 using Hexastore.Processor;
 using NLua;
 
 namespace Hexastore.Scripting
 {
-    public class ScriptHost : IScriptHost, IDisposable
+    public class ScriptHost : IDisposable
     {
         private readonly Lua _lua;
         private readonly IStoreProcesor _storeProcessor;
 
-        public ScriptHost(IStoreProcesor storeProcessor)
+        public void Load(string script, string storeId)
         {
-            _storeProcessor = storeProcessor;
+            _lua["store"] = new StoreAccess(storeId, _storeProcessor);
+            _lua.DoString(script);
         }
 
-        public bool? Filter(string storeId, string subjectId, string script, string functionName)
+        public bool? Filter(string subjectId, string functionName)
         {
-            using(var lua = new Lua()) {
-                lua["store"] = new StoreAccess(storeId, _storeProcessor);
-                lua.DoString(script);
-                var luaFunction = lua[functionName] as LuaFunction;
-                var rsp = luaFunction.Call(subjectId).First();
-                return rsp as bool?;
-            }
+            var luaFunction = _lua[functionName] as LuaFunction;
+            var rsp = luaFunction.Call(subjectId).First();
+            return rsp as bool?;
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _lua.Dispose();
         }
     }
 }

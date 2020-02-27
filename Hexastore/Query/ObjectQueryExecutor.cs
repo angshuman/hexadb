@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using Hexastore.Errors;
 using Hexastore.Graph;
+using Hexastore.Scripting;
 using Hexastore.Web.Errors;
 using Newtonsoft.Json.Linq;
 
@@ -20,7 +21,7 @@ namespace Hexastore.Query
         {
             _storeErrors = new StoreError();
         }
-        public ObjectQueryResponse Query(ObjectQueryModel query, IStoreGraph graph)
+        public ObjectQueryResponse Query(ObjectQueryModel query, IStoreGraph graph, ScriptHost scriptHost)
         {
             query.PageSize = query.PageSize != 0 ? query.PageSize : Constants.DefaultPageSize;
             if (query.Id != null) {

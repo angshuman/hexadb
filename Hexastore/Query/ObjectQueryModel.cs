@@ -23,6 +23,8 @@ namespace Hexastore.Query
         public LinkQuery[] HasObject { get; set; }
         [JsonProperty("aggregates")]
         public AggregateQuery[] Aggregates { get; set; }
+        [JsonProperty("script")]
+        public string Script { get; set; }
     }
 
     public class AggregateQuery
