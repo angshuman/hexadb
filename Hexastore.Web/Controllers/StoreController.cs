@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -165,6 +167,27 @@ namespace Hexastore.Web.Controllers
                 }
                 return Accepted();
             } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+        [HttpPatch("{storeId}/batch/json")]
+        public async Task<IActionResult> BatchPatchJson(string storeId, [FromBody]IEnumerable<JToken> dataPatches)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerPatchJson, "BATCH PATCH JSON: store {storeId}", storeId);
+            try
+            {
+                var payloads = dataPatches.Select(patch => new StoreEvent
+                {
+                    Operation = EventType.PATCH_JSON,
+                    Data = patch.ToString(Formatting.None)
+                });
+
+                await SendEvents(storeId, payloads);
+                return Accepted();
+            }
+            catch (Exception e)
+            {
                 return HandleException(e);
             }
         }

@@ -71,6 +71,23 @@ namespace Hexastore.Web.Controllers
             await _eventProcessor.SendMessage(payload);
         }
 
+        protected Task SendEvents(string storeId, IEnumerable<StoreEvent> payloads)
+        {
+            var tc = new TaskCompletionSource<bool>();
+            var storeEvents = payloads.ToList();
+            foreach (var payload in storeEvents)
+            {
+                var guid = Guid.NewGuid().ToString();
+                payload.OperationId = guid;
+                payload.StoreId = storeId;
+                _receiver.SetCompletion(guid, tc);
+            }
+           
+            _ = _eventProcessor.SendMessages(storeEvents);
+            return tc.Task;
+        }
+
+
         protected IActionResult HandleException(Exception e)
         {
             _logger.LogError(LoggingEvents.ControllerError, e, e.Message);
