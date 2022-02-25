@@ -1,20 +1,19 @@
-﻿using Hexastore.Graph;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Hexastore.Errors;
+using Hexastore.Graph;
 using Hexastore.Parser;
 using Hexastore.Query;
 using Hexastore.Resoner;
 using Hexastore.Store;
-using Hexastore.Errors;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Hexastore.Web.Errors;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Processor
 {
-    public class StoreProcessor : IStoreProcesor
+    public class StoreProcessor : IStoreProcessor
     {
         private readonly IStoreProvider _setProvider;
         private readonly IReasoner _reasoner;
@@ -251,6 +250,18 @@ namespace Hexastore.Processor
             var meta = set.GetGraph(GraphType.Meta);
 
             return (data, infer, meta);
+        }
+
+        public void CreateTwin(string storeId, JToken data)
+        {
+            data["$adt.type"] = "T";
+            Assert(storeId, data, false);
+        }
+
+        public void CreateRelationship(string storeId, JToken data)
+        {
+            data["$adt.type"] = "R";
+            Assert(storeId, data, false);
         }
     }
 }

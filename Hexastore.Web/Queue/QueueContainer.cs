@@ -20,7 +20,7 @@ namespace Hexastore.Web.Queue
             _logger = logger;
             _eventReceiver = eventReceiver;
             _queueWriters = new QueueWriter[_count];
-            for(int i=0; i< _count; i++) {
+            for (int i = 0; i < _count; i++) {
                 _queueWriters[i] = new QueueWriter(eventReceiver, logger, storeError, maxQueueSize);
             }
             _ = _eventReceiver.LogCount();
@@ -30,7 +30,7 @@ namespace Hexastore.Web.Queue
         public void Dispose()
         {
             _running = false;
-            foreach(var q in _queueWriters) {
+            foreach (var q in _queueWriters) {
                 q.Dispose();
             }
         }
@@ -51,7 +51,7 @@ namespace Hexastore.Web.Queue
         {
             while (_running) {
                 await Task.Delay(10000);
-                _logger.LogInformation($"{DateTime.Now.ToString("hh':'mm':'ss")} Queue Length: {_queueWriters.Sum(x=> x.Length)}");
+                _logger.LogInformation($"{DateTime.Now.ToString("hh':'mm':'ss")} Queue Length: {_queueWriters.Sum(x => x.Length)}");
             }
         }
     }

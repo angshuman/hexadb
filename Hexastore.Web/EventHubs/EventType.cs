@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Hexastore.Web.EventHubs
+﻿namespace Hexastore.Web.EventHubs
 {
     public class EventType
     {
@@ -11,5 +6,7 @@ namespace Hexastore.Web.EventHubs
         public const string PATCH_JSON = "PATCH_JSON";
         public const string PATCH_TRIPLE = "PATCH_TRIPLE";
         public const string DELETE = "DELETE";
+        public const string CREATETWIN = "CREATETWIN";
+        public const string CREATERELATIONSHIP = "CREATERELATIONSHIP";
     }
 }

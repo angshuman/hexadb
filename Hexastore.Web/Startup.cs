@@ -44,7 +44,7 @@ namespace Hexastore.Web
 
             services.AddSingleton<IGraphProvider, RocksGraphProvider>();
             services.AddSingleton<IReasoner, Reasoner>();
-            services.AddSingleton<IStoreProcesor, StoreProcessor>();
+            services.AddSingleton<IStoreProcessor, StoreProcessor>();
             services.AddSingleton<IStoreProvider, SetProvider>();
             services.AddSingleton<IQueueContainer, QueueContainer>();
             services.AddSingleton<StoreError>();

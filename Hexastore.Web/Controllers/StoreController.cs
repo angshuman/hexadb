@@ -7,7 +7,6 @@ using Hexastore.Processor;
 using Hexastore.Web.EventHubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Web.Controllers
@@ -16,10 +15,10 @@ namespace Hexastore.Web.Controllers
     [ApiController]
     public class StoreController : StoreControllerBase
     {
-        private readonly IStoreProcesor _storeProcessor;
+        private readonly IStoreProcessor _storeProcessor;
         private readonly ILogger _logger;
 
-        public StoreController(IStoreProcesor storeProcessor, EventReceiver receiver, EventSender processor, StoreError storeError, ILogger<StoreController> logger)
+        public StoreController(IStoreProcessor storeProcessor, EventReceiver receiver, EventSender processor, StoreError storeError, ILogger<StoreController> logger)
             : base(receiver, processor, storeError, logger)
         {
             _storeProcessor = storeProcessor;
@@ -55,7 +54,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}/query")]
-        public IActionResult Query(string storeId, [FromBody]JObject query)
+        public IActionResult Query(string storeId, [FromBody] JObject query)
         {
             _logger.LogInformation(LoggingEvents.ControllerQuery, "QUERY: store {store}", storeId);
             try {
@@ -80,7 +79,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}/ingest")]
-        public async Task<IActionResult> Ingest(string storeId, [FromBody]UpdateRequest req)
+        public async Task<IActionResult> Ingest(string storeId, [FromBody] UpdateRequest req)
         {
             _logger.LogInformation(LoggingEvents.ControllerIngest, "INGEST: store: {store} partition: {partitionId}", storeId, req.PartitionKey);
             string url = req.Data?["url"]?.ToString();
@@ -130,7 +129,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}")]
-        public async Task<IActionResult> Post(string storeId, [FromBody]UpdateRequest[] batch)
+        public async Task<IActionResult> Post(string storeId, [FromBody] UpdateRequest[] batch)
         {
             _logger.LogInformation(LoggingEvents.ControllerPost, "POST: store: {store} batch size: {size}", storeId, batch.Length);
             try {
@@ -151,7 +150,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/json")]
-        public async Task<IActionResult> PatchJson(string storeId, [FromBody]UpdateRequest[] batch)
+        public async Task<IActionResult> PatchJson(string storeId, [FromBody] UpdateRequest[] batch)
         {
             _logger.LogInformation(LoggingEvents.ControllerPatchJson, "PATCH JSON: store: {storeId} batch size: {size}", storeId, batch.Length);
             try {
@@ -170,7 +169,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPatch("{storeId}/triple")]
-        public async Task<IActionResult> PatchTriple(string storeId, [FromBody]UpdateRequest[] batch)
+        public async Task<IActionResult> PatchTriple(string storeId, [FromBody] UpdateRequest[] batch)
         {
             _logger.LogInformation(LoggingEvents.ControllerPatchTriple, "PATCH TRIPLE: store: {store} batch size: {size}", storeId, batch.Length);
             try {
@@ -189,7 +188,7 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpDelete("{storeId}/subject")]
-        public async Task<IActionResult> Delete(string storeId, [FromBody]UpdateRequest[] batch)
+        public async Task<IActionResult> Delete(string storeId, [FromBody] UpdateRequest[] batch)
         {
             _logger.LogInformation(LoggingEvents.ControllerDelete, "DELETE: store: {store} parition: {partitionId}", storeId, batch.Length);
             try {
@@ -197,6 +196,47 @@ namespace Hexastore.Web.Controllers
 
                     var e = new StoreEvent {
                         Operation = EventType.DELETE,
+                        Data = req.Data,
+                        PartitionId = req.PartitionKey
+                    };
+                    await SendEvent(storeId, e);
+                }
+                return Accepted();
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+        [HttpPost("{storeId}/twin")]
+        public async Task<IActionResult> CreateTwin(string storeId, [FromBody] UpdateRequest[] batch)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "TWIN: CREATE: store: {store} parition: {partitionId}", storeId, batch.Length);
+            try {
+                foreach (var req in batch) {
+
+                    var e = new StoreEvent {
+                        Operation = EventType.CREATETWIN,
+                        Data = req.Data,
+                        PartitionId = req.PartitionKey
+                    };
+                    await SendEvent(storeId, e);
+                }
+                return Accepted();
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
+
+        [HttpPost("{storeId}/relationship")]
+        public async Task<IActionResult> CreateRelationship(string storeId, [FromBody] UpdateRequest[] batch)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "RELATIONSHIP: CREATE: store: {store} parition: {partitionId}", storeId, batch.Length);
+            try {
+                foreach (var req in batch) {
+
+                    var e = new StoreEvent {
+                        Operation = EventType.CREATERELATIONSHIP,
                         Data = req.Data,
                         PartitionId = req.PartitionKey
                     };

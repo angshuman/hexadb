@@ -17,7 +17,7 @@ namespace Hexastore.Test
     {
         public readonly RocksGraphProvider GraphProvider;
         public readonly IStoreProvider StoreProvider;
-        public readonly IStoreProcesor StoreProcessor;
+        public readonly IStoreProcessor StoreProcessor;
         public readonly IStoreOperationFactory StoreOperationFactory;
         public readonly string SetId;
         public readonly TestFolder TestFolder;

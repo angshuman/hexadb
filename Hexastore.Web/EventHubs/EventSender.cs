@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Hexastore.Web.Queue;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Web.EventHubs
 {
@@ -46,7 +44,7 @@ namespace Hexastore.Web.EventHubs
         {
             if (!_active) {
                 // pass through
-                _queueContainer.Send(storeEvent);
+                await _storeReceiver.ProcessEventsAsync(storeEvent);
                 return;
             }
 

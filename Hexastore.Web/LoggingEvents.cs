@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Hexastore.Web
+﻿namespace Hexastore.Web
 {
     public class LoggingEvents
     {
@@ -17,5 +12,7 @@ namespace Hexastore.Web
         public const int ControllerDelete = 107;
         public const int ControllerError = 108;
         public const int ControllerPredicates = 109;
+        public const int ControllerTwinCreate = 110;
+        public const int ControllerRelationshipCreate = 111;
     }
 }

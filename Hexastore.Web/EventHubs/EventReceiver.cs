@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Hexastore.Processor;
@@ -18,13 +17,13 @@ namespace Hexastore.Web.EventHubs
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _completions;
         private readonly ILogger<EventReceiver> _logger;
         private readonly Checkpoint _checkpoint;
-        private readonly IStoreProcesor _storeProcessor;
+        private readonly IStoreProcessor _storeProcessor;
         private readonly StoreConfig _storeConfig;
         private bool _running = true;
 
         private int _eventCount;
 
-        public EventReceiver(IStoreProcesor storeProcessor, Checkpoint checkpoint, StoreConfig storeConfig, ILogger<EventReceiver> logger)
+        public EventReceiver(IStoreProcessor storeProcessor, Checkpoint checkpoint, StoreConfig storeConfig, ILogger<EventReceiver> logger)
         {
             _completions = new ConcurrentDictionary<string, TaskCompletionSource<bool>>();
             _logger = logger;
@@ -37,12 +36,10 @@ namespace Hexastore.Web.EventHubs
 
         public int MaxBatchSize
         {
-            get
-            {
+            get {
                 return 1000;
             }
-            set
-            {
+            set {
             }
         }
 
@@ -110,6 +107,12 @@ namespace Hexastore.Web.EventHubs
                         break;
                     case EventType.DELETE:
                         _storeProcessor.Delete(storeId, data);
+                        break;
+                    case EventType.CREATETWIN:
+                        _storeProcessor.CreateTwin(storeId, data);
+                        break;
+                    case EventType.CREATERELATIONSHIP:
+                        _storeProcessor.CreateRelationship(storeId, data);
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown operation {operation}");
