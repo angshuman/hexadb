@@ -19,16 +19,16 @@ namespace Hexastore.Store
         {
             _id = id;
             _provider = provider;
-            _graphs[GraphType.Meta] = provider.CreateGraph(id, GraphType.Meta);
+            _graphs[GraphType.Meta] = null; // provider.CreateGraph(id, GraphType.Meta);
             _graphs[GraphType.Data] = provider.CreateGraph(id, GraphType.Data);
-            _graphs[GraphType.Infer] = provider.CreateGraph(id, GraphType.Infer);
+            _graphs[GraphType.Infer] = null; // provider.CreateGraph(id, GraphType.Infer);
         }
 
         public void Dispose()
         {
-            _graphs[GraphType.Meta].Dispose();
-            _graphs[GraphType.Meta].Dispose();
-            _graphs[GraphType.Meta].Dispose();
+            _graphs[GraphType.Data].Dispose();
+            // _graphs[GraphType.Meta].Dispose();
+            // _graphs[GraphType.Infer].Dispose();
         }
 
         public IStoreGraph GetGraph(GraphType type)

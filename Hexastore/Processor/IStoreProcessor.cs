@@ -18,6 +18,7 @@
         JObject GetSubject(string storeId, string subject, string[] expand, int level);
         JObject GetType(string storeId, string[] type, string[] expand, int level);
         JObject Query(string storeId, JObject query, string[] expand, int level);
+        JObject QueryV2(string storeId, JObject query, string[] expand, int level);
         JObject GetPredicates(string storeId);
     }
 }

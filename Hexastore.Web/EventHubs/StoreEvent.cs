@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Hexastore.Errors;
-using Hexastore.Web.Errors;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -37,5 +32,11 @@ namespace Hexastore.Web.EventHubs
                 throw new InvalidOperationException("Cannot parse store event", e);
             }
         }
+    }
+
+    public class BatchedStoreEvent : StoreEvent
+    {
+        [JsonProperty("data")]
+        public JArray Batch { get; set; }
     }
 }

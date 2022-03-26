@@ -23,8 +23,9 @@ namespace Hexastore.Web.Queue
             for (int i = 0; i < _count; i++) {
                 _queueWriters[i] = new QueueWriter(eventReceiver, logger, storeError, maxQueueSize);
             }
-            _ = _eventReceiver.LogCount();
-            _ = LogQueueLength();
+
+            // _ = _eventReceiver.LogCount();
+            // _ = LogQueueLength();
         }
 
         public void Dispose()

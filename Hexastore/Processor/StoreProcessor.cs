@@ -61,6 +61,33 @@ namespace Hexastore.Processor
             }
         }
 
+        public void AssertBatch(string storeId, JArray input, bool strict)
+        {
+            try {
+                var graph = new List<Triple>();
+                var (data, _, _) = GetSetGraphs(storeId);
+                foreach (var item in input) {
+                    if (!(item is JObject)) {
+                        throw _storeErrors.InvalidItem;
+                    }
+                    var jobj = (JObject)item;
+                    if (!jobj.ContainsKey(Constants.ID) || jobj[Constants.ID].Type != JTokenType.String) {
+                        throw _storeErrors.MustHaveId;
+                    }
+                    if (strict && data.S(jobj[Constants.ID].ToString()).Any()) {
+                        throw new StoreException($"Already contains object with id {jobj[Constants.ID]}", _storeErrors.AlreadyContainsIdError);
+                    }
+                    graph.AddRange(TripleConverter.FromJson((JObject)item));
+                }
+
+                // assert all triples in a batch
+                data.Assert(graph);
+            } catch (Exception e) {
+                _logger.LogError("Assert failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw e;
+            }
+        }
+
         public void PatchJson(string storeId, JToken token)
         {
             JArray inputs;
@@ -242,6 +269,25 @@ namespace Hexastore.Processor
             }
         }
 
+        public JObject QueryV2(string storeId, JObject query, string[] expand, int level)
+        {
+            try {
+                var (data, _, _) = GetSetGraphs(storeId);
+                QueryV2Request queryModel;
+                try {
+                    queryModel = query.ToObject<QueryV2Request>();
+
+                } catch (Exception e) {
+                    throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
+                }
+
+                return new JObject();
+            } catch (Exception e) {
+                _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw e;
+            }
+        }
+
         private (IStoreGraph, IStoreGraph, IStoreGraph) GetSetGraphs(string storeId)
         {
             var set = _setProvider.GetOrAdd(storeId);
@@ -254,14 +300,22 @@ namespace Hexastore.Processor
 
         public void CreateTwin(string storeId, JToken data)
         {
-            data["$adt.type"] = "T";
-            Assert(storeId, data, false);
+            AssertBatch(storeId, (JArray)data, false);
+
+            // foreach(var item in (JArray)data)
+            // {
+            //     Assert(storeId, item, false);
+            // }
         }
 
         public void CreateRelationship(string storeId, JToken data)
         {
-            data["$adt.type"] = "R";
-            Assert(storeId, data, false);
+            AssertBatch(storeId, (JArray)data, false);
+            
+            // foreach(var item in (JArray)data)
+            // {
+            //     Assert(storeId, item, false);
+            // }
         }
     }
 }

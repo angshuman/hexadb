@@ -66,6 +66,19 @@ namespace Hexastore.Web.Controllers
             }
         }
 
+        [HttpPost("{storeId}/queryv2")]
+        public IActionResult QueryV2(string storeId, [FromBody] JObject query)
+        {
+            _logger.LogInformation(LoggingEvents.ControllerQuery, "QUERY: store {store}", storeId);
+            try {
+                var (_, expand, level, _) = GetParams();
+                var rsp = _storeProcessor.QueryV2(storeId, query, expand, level);
+                return Ok(rsp);
+            } catch (Exception e) {
+                return HandleException(e);
+            }
+        }
+
         [HttpGet("{storeId}/predicates")]
         public IActionResult Predicates(string storeId)
         {
@@ -208,19 +221,27 @@ namespace Hexastore.Web.Controllers
         }
 
         [HttpPost("{storeId}/twin")]
-        public async Task<IActionResult> CreateTwin(string storeId, [FromBody] UpdateRequest[] batch)
+        public async Task<IActionResult> CreateTwin(string storeId, [FromBody] JArray batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "TWIN: CREATE: store: {store} parition: {partitionId}", storeId, batch.Length);
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "TWIN: CREATE: store: {store} parition: {partitionId}", storeId, batch.Count);
             try {
-                foreach (var req in batch) {
+                //foreach (var req in batch) {
 
-                    var e = new StoreEvent {
-                        Operation = EventType.CREATETWIN,
-                        Data = req.Data,
-                        PartitionId = req.PartitionKey
-                    };
-                    await SendEvent(storeId, e);
-                }
+                //    var e = new StoreEvent {
+                //        Operation = EventType.CREATETWIN,
+                //        Data = req.Data,
+                //        PartitionId = req.PartitionKey
+                //    };
+                //    await SendEvent(storeId, e);
+                //}
+
+                var e = new StoreEvent {
+                    Operation = EventType.CREATETWIN,
+                    Data = batch
+                };
+
+                await SendEvent(storeId, e);
+
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
@@ -229,19 +250,27 @@ namespace Hexastore.Web.Controllers
 
 
         [HttpPost("{storeId}/relationship")]
-        public async Task<IActionResult> CreateRelationship(string storeId, [FromBody] UpdateRequest[] batch)
+        public async Task<IActionResult> CreateRelationship(string storeId, [FromBody] JArray batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "RELATIONSHIP: CREATE: store: {store} parition: {partitionId}", storeId, batch.Length);
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "RELATIONSHIP: CREATE: store: {store} parition: {partitionId}", storeId, batch.Count);
             try {
-                foreach (var req in batch) {
+                //foreach (var req in batch) {
 
-                    var e = new StoreEvent {
-                        Operation = EventType.CREATERELATIONSHIP,
-                        Data = req.Data,
-                        PartitionId = req.PartitionKey
-                    };
-                    await SendEvent(storeId, e);
-                }
+                //    var e = new StoreEvent {
+                //        Operation = EventType.CREATERELATIONSHIP,
+                //        Data = req.Data,
+                //        PartitionId = req.PartitionKey
+                //    };
+                //    await SendEvent(storeId, e);
+                //}
+
+                var e = new StoreEvent {
+                    Operation = EventType.CREATERELATIONSHIP,
+                    Data = batch
+                };
+
+                await SendEvent(storeId, e);
+
                 return Accepted();
             } catch (Exception e) {
                 return HandleException(e);
