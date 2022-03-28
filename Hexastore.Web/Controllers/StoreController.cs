@@ -223,7 +223,7 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}/twin")]
         public async Task<IActionResult> CreateTwin(string storeId, [FromBody] JArray batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "TWIN: CREATE: store: {store} parition: {partitionId}", storeId, batch.Count);
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "TWIN: CREATE [] : store: {store}", storeId);
             try {
                 //foreach (var req in batch) {
 
@@ -252,7 +252,7 @@ namespace Hexastore.Web.Controllers
         [HttpPost("{storeId}/relationship")]
         public async Task<IActionResult> CreateRelationship(string storeId, [FromBody] JArray batch)
         {
-            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "RELATIONSHIP: CREATE: store: {store} parition: {partitionId}", storeId, batch.Count);
+            _logger.LogInformation(LoggingEvents.ControllerTwinCreate, "RELATIONSHIP: CREATE: [] store: {store}", storeId);
             try {
                 //foreach (var req in batch) {
 

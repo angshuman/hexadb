@@ -9,7 +9,7 @@ namespace Hexastore.Rocks
     public class RocksGraph : IStoreGraph
     {
         private readonly RocksDb _db;
-        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
+        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(true);
 
         public RocksGraph(string name, RocksDb db)
         {
