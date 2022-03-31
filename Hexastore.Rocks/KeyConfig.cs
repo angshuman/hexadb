@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Hexastore.Graph;
 
@@ -144,7 +143,11 @@ namespace Hexastore.Rocks
 
         public static byte[] ConcatBytes(params byte[][] inputs)
         {
-            var totalLength = inputs.Sum(x => x.Length);
+            var totalLength = 0;
+            foreach (var item in inputs) {
+                totalLength += item.Length;
+            }
+
             var output = new byte[totalLength];
 
             var outputIndex = 0;

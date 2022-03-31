@@ -1,19 +1,16 @@
 ﻿using System;
-using System.IO;
-using dotenv.net;
 using Hexastore.Errors;
 using Hexastore.Processor;
 using Hexastore.Resoner;
 using Hexastore.Rocks;
 using Hexastore.Store;
 using Hexastore.Web.EventHubs;
+using Hexastore.Web.Queue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
-using Hexastore.Web.Queue;
 
 namespace Hexastore.Web
 {
@@ -57,12 +54,13 @@ namespace Hexastore.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+#if false
             if (File.Exists("/var/data/Hexastore.env")) {
                 DotEnv.Config(false, "/var/data/Hexastore.env");
             } else if (File.Exists("Hexastore.env")) {
                 DotEnv.Config(false, "Hexastore.env");
             }
-
+#endif
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
