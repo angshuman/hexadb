@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RocksExplorer": {
+      "commandName": "Project",
+      "commandLineArgs": " read C:\\\\data\\\\hexastore\\\\adt001  --take 100000 -o out.txt"
+    }
+  }
+}
