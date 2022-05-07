@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
@@ -13,11 +14,19 @@ namespace Hexastore.Client
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            var writer = new HexWriter("blah1");
+            int count = -1;
 
-            while (true) {
-                await writer.WriteAsync(10000, 10);
-            }
+            var tasks = Enumerable.Range(0, 8).Select(x => {
+                return Task.Run(async () => {
+
+                    var rsp = Interlocked.Increment(ref count);
+                    var writer = new HexWriter($"blah{count:D3}");
+                    while (true) {
+                        await writer.WriteAsync(1000, 10);
+                    }
+                });
+            });
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -39,7 +48,7 @@ namespace Hexastore.Client
 
         private void Callback(object state)
         {
-            Console.WriteLine($"Total {Total} in {_watch.ElapsedMilliseconds}ms. Rate {(Total * 1000 / _watch.ElapsedMilliseconds)}/sec");
+            Console.WriteLine($"Store {_storeId}: Total {Total} in {_watch.ElapsedMilliseconds}ms. Rate {(Total * 1000 / _watch.ElapsedMilliseconds)}/sec");
         }
 
         public async Task WriteAsync(int batchSize, int numProps)
