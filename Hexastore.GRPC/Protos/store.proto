@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+option csharp_namespace = "Hexastore.GRPC";
+
+package store;
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings.
+message HelloReply {
+  string message = 1;
+}
+
+service Ingest {
+    rpc Assert(AssertRequest)  returns (AssertResponse);
+}
+
+message AssertRequest
+{
+    repeated TripleMessage Triples = 1;
+}
+
+message AssertResponse
+{
+    int32 Count = 1;
+    string Message = 2;
+}
+
+message TripleMessage
+{
+    string Subject = 1;
+    string Predicate = 2;
+    string Object = 3;
+    enum ValueType
+    {
+        Int = 0;
+        String = 1;
+        Double = 2;
+        Bool = 3;
+    }
+    ValueType Type = 4;
+    oneof Value
+    {
+        int64 IntValue = 5; 
+        string StringValue = 6;
+        double DoubleValue = 7;
+        bool BoolValue = 8;
+    }
+}
