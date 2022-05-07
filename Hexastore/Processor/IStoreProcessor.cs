@@ -1,10 +1,13 @@
 ﻿namespace Hexastore.Processor
 {
+    using System.Collections.Generic;
     using Hexastore.Graph;
     using Newtonsoft.Json.Linq;
 
     public interface IStoreProcessor
     {
+        void Assert(string storeId, IEnumerable<Triple> triples);
+        void Patch(string storeId, IEnumerable<Triple> triples);
         void Assert(string storeId, JToken value, bool strict);
         void PatchJson(string storeId, JToken input);
         void PatchTriple(string storeId, JObject input);

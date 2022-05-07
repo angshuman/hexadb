@@ -1,6 +1,11 @@
 ﻿namespace Hexastore.GRPC
 {
+    using Hexastore.Errors;
     using Hexastore.GRPC.Services;
+    using Hexastore.Processor;
+    using Hexastore.Resoner;
+    using Hexastore.Rocks;
+    using Hexastore.Store;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -14,6 +19,12 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+
+            services.AddSingleton<IGraphProvider, RocksGraphProvider>();
+            services.AddSingleton<IReasoner, Reasoner>();
+            services.AddSingleton<IStoreProcessor, StoreProcessor>();
+            services.AddSingleton<IStoreProvider, SetProvider>();
+            services.AddSingleton<StoreError>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

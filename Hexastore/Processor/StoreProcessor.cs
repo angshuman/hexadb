@@ -57,7 +57,7 @@ namespace Hexastore.Processor
                 }
             } catch (Exception e) {
                 _logger.LogError("Assert failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -84,7 +84,7 @@ namespace Hexastore.Processor
                 data.Assert(graph);
             } catch (Exception e) {
                 _logger.LogError("Assert failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -118,7 +118,7 @@ namespace Hexastore.Processor
                 }
             } catch (Exception e) {
                 _logger.LogError("Patch JSON failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -168,7 +168,7 @@ namespace Hexastore.Processor
                 }
             } catch (Exception e) {
                 _logger.LogError("Patch triple failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -265,7 +265,7 @@ namespace Hexastore.Processor
                 return JObject.FromObject(response);
             } catch (Exception e) {
                 _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -284,7 +284,7 @@ namespace Hexastore.Processor
                 return new JObject();
             } catch (Exception e) {
                 _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -311,11 +311,30 @@ namespace Hexastore.Processor
         public void CreateRelationship(string storeId, JToken data)
         {
             AssertBatch(storeId, (JArray)data, false);
-            
+
             // foreach(var item in (JArray)data)
             // {
             //     Assert(storeId, item, false);
             // }
+        }
+
+        public void Assert(string storeId, IEnumerable<Triple> triples)
+        {
+            var (data, _, _) = GetSetGraphs(storeId);
+            data.Assert(triples);
+        }
+
+        public void Patch(string storeId, IEnumerable<Triple> triples)
+        {
+            var (data, _, _) = GetSetGraphs(storeId);
+            var toRemove = new List<Triple>();
+            var subjects = triples.Select(x => x.Subject).Distinct();
+
+            foreach (var s in subjects) {
+                toRemove.AddRange(data.S(s));
+            }
+
+            data.BatchRetractAssert(toRemove, triples);
         }
     }
 }

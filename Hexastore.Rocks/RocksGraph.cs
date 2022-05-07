@@ -9,7 +9,7 @@ namespace Hexastore.Rocks
     public class RocksGraph : IStoreGraph
     {
         private readonly RocksDb _db;
-        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(true);
+        private static readonly WriteOptions _writeOptions = (new WriteOptions()).SetSync(false);
 
         public RocksGraph(string name, RocksDb db)
         {
@@ -46,10 +46,6 @@ namespace Hexastore.Rocks
         {
             using (var batch = new WriteBatch()) {
                 foreach (var t in triples) {
-                    if (Exists(t)) {
-                        continue;
-                    }
-
                     var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
                     var (sKey, pKey, oKey) = keySegments.GetKeys();
                     var serializedTripleObject = t.Object.ToBytes();

@@ -43,7 +43,13 @@ namespace Hexastore.Rocks
             if (optionInput != null) {
                 _dbOptions = optionInput;
             } else {
-                _dbOptions.SetAllowConcurrentMemtableWrite(true);
+                _dbOptions.SetAllowConcurrentMemtableWrite(true)
+                    .SetAllowConcurrentMemtableWrite(true)
+                    .SetAllowMmapReads(true)
+                    .SetAllowMmapWrites(true)
+                    .SetUseFsync(0)
+                    .IncreaseParallelism(8)
+                    .SetCompression(Compression.No);
             }
 
             /*
