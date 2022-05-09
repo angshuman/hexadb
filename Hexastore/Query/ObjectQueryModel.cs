@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Hexastore.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -59,6 +57,10 @@ namespace Hexastore.Query
 
         public static implicit operator Continuation(Triple t)
         {
+            if (t == null) {
+                return null;
+            }
+
             return new Continuation() { S = t.Subject, P = t.Predicate, O = t.Object.ToTypedJSON(), IsId = t.Object.IsID };
         }
 

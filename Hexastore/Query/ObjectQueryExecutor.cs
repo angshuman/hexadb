@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading;
 using Hexastore.Errors;
 using Hexastore.Graph;
-using Hexastore.Web.Errors;
 using Newtonsoft.Json.Linq;
 
 namespace Hexastore.Query
@@ -23,7 +19,7 @@ namespace Hexastore.Query
         public ObjectQueryResponse Query(ObjectQueryModel query, IStoreGraph graph)
         {
             query.PageSize = query.PageSize != 0 ? query.PageSize : Constants.DefaultPageSize;
-            if (query.Id != null) {
+            if (!string.IsNullOrEmpty(query.Id)) {
                 var item = graph.S(query.Id).FirstOrDefault();
                 return new ObjectQueryResponse {
                     Values = item != null ? new Triple[] { item } : new Triple[0],
@@ -36,7 +32,7 @@ namespace Hexastore.Query
             }
 
             var firstFilter = query.Filter.FirstOrDefault();
-            if (firstFilter.Key == null) {
+            if (string.IsNullOrEmpty(firstFilter.Key)) {
                 throw _storeErrors.AtLeastOneFilter;
             }
 

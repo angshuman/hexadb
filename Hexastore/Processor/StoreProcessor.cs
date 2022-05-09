@@ -240,6 +240,36 @@ namespace Hexastore.Processor
             throw new NotImplementedException();
         }
 
+        public ObjectQueryResponse QueryTriples(string storeId, JObject query, string[] expand, int level)
+        {
+            try {
+                var (data, _, _) = GetSetGraphs(storeId);
+                ObjectQueryModel queryModel;
+                try {
+                    queryModel = query.ToObject<ObjectQueryModel>();
+                } catch (Exception e) {
+                    throw new StoreException(e.Message, _storeErrors.UnableToParseQuery);
+                }
+
+                var result = new ObjectQueryExecutor().Query(queryModel, data);
+                var expandedResult = new ObjectQueryResponse();
+
+                expandedResult.Continuation = result.Continuation;
+                if (level > 0) {
+                    expandedResult.Values = result.Values?.Select(x => {
+                        return GraphOperator.Expand(data, x.Subject, level, expand);
+                    }).SelectMany(x => x);
+                } else {
+                    expandedResult.Values = result.Values;
+                }
+
+                return expandedResult;
+            } catch (Exception e) {
+                _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw;
+            }
+        }
+
         public JObject Query(string storeId, JObject query, string[] expand, int level)
         {
             try {

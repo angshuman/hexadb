@@ -23,10 +23,6 @@ namespace Hexastore.Rocks
 
         public bool Assert(Triple t)
         {
-            if (Exists(t)) {
-                return false;
-            }
-
             var keySegments = new KeySegments(Name, t.Subject, t.Predicate, t.Object);
             var (sKey, pKey, oKey) = keySegments.GetKeys();
 

@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using Hexastore.Graph;
+    using Hexastore.Query;
     using Newtonsoft.Json.Linq;
 
     public interface IStoreProcessor
@@ -21,6 +22,7 @@
         JObject GetSubject(string storeId, string subject, string[] expand, int level);
         JObject GetType(string storeId, string[] type, string[] expand, int level);
         JObject Query(string storeId, JObject query, string[] expand, int level);
+        public ObjectQueryResponse QueryTriples(string storeId, JObject query, string[] expand, int level);
         JObject QueryV2(string storeId, JObject query, string[] expand, int level);
         JObject GetPredicates(string storeId);
     }
