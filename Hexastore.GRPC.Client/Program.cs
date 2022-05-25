@@ -40,8 +40,8 @@ namespace Hexastore.Client
             var driver = new HexDriver("store1");
             // await driver.WriteList();
             await driver.WriteGraph();
+            await driver.SelectAll();
             await driver.PointQueryAsync();
-            // await driver.RootedQueryAsync();
             await driver.UnrootedQueryAsync();
         }
     }
@@ -49,8 +49,8 @@ namespace Hexastore.Client
     public class HexDriver
     {
         private readonly Random _rand = new();
-        private readonly Ingest.IngestClient _ingestClient = new Ingest.IngestClient(GrpcChannel.ForAddress("https://localhost:5001"));
-        private readonly Query.QueryClient _queryClient = new Query.QueryClient(GrpcChannel.ForAddress("https://localhost:5001"));
+        private readonly Ingest.IngestClient _ingestClient = new Ingest.IngestClient(GrpcChannel.ForAddress("http://localhost:5000"));
+        private readonly Query.QueryClient _queryClient = new Query.QueryClient(GrpcChannel.ForAddress("http://localhost:5000"));
         private readonly string _storeId;
         private readonly Stopwatch _watch = Stopwatch.StartNew();
         public long Total { get; set; }
@@ -142,6 +142,25 @@ namespace Hexastore.Client
             Console.WriteLine(string.Join('\n', response.Triples.Select(x => x.Serialize())));
             Console.WriteLine($"Unrooted Query In: {watch.ElapsedMilliseconds}");
 
+        }
+
+        public async Task SelectAll()
+        {
+            Console.WriteLine("################################################################## Select All");
+            var watch = Stopwatch.StartNew();
+
+            var query = new QueryRequest {
+                StoreId = _storeId,
+            };
+
+            var response = _queryClient.SelectAll(query);
+            var cts = new CancellationTokenSource();
+            
+            while(await response.ResponseStream.MoveNext(cts.Token)) {
+                Console.WriteLine(response.ResponseStream.Current.Serialize());
+            }
+            
+            Console.WriteLine($"Unrooted Query In: {watch.ElapsedMilliseconds}");
         }
 
         public async Task WriteList(int numTwins = 100, int numProps = 10)

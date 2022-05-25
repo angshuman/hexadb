@@ -20,6 +20,7 @@
         JObject GetSet(string storeId);
         (IStoreGraph, IStoreGraph, IStoreGraph) GetGraphs(string storeId);
         JObject GetSubject(string storeId, string subject, string[] expand, int level);
+        public IEnumerable<Triple> SelectAll(string storeId);
         JObject GetType(string storeId, string[] type, string[] expand, int level);
         JObject Query(string storeId, JObject query, string[] expand, int level);
         public ObjectQueryResponse QueryTriples(string storeId, JObject query, string[] expand, int level);

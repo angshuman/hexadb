@@ -240,6 +240,17 @@ namespace Hexastore.Processor
             throw new NotImplementedException();
         }
 
+        public IEnumerable<Triple> SelectAll(string storeId)
+        {
+            try {
+                var (data, _, _) = GetSetGraphs(storeId);
+                return data.GetTriples();
+            } catch (Exception e) {
+                _logger.LogError("Query failed. {Message}\n {StackTrace}", e.Message, e.StackTrace);
+                throw;
+            }
+        }
+
         public ObjectQueryResponse QueryTriples(string storeId, JObject query, string[] expand, int level)
         {
             try {

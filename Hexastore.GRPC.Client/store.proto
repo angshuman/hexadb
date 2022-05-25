@@ -15,6 +15,7 @@ service Ingest {
 
 service Query {
     rpc Query(QueryRequest) returns (QueryResponse);
+    rpc SelectAll(QueryRequest) returns (stream TripleMessage);
 }
 
 // types 

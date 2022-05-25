@@ -23,6 +23,20 @@
             _storeProcessor = storeProcessor;
         }
 
+        public override async Task SelectAll(QueryRequest request, IServerStreamWriter<TripleMessage> responseStream, ServerCallContext context)
+        {
+            try {
+                var all = _storeProcessor.SelectAll(request.StoreId);
+                foreach(var item in all) {
+                    await responseStream.WriteAsync(item.ConvertToTripleMessage());
+                }
+
+            } catch (Exception e) {
+                _logger.LogError("Query Error", e);
+                throw;
+            }
+        }
+
         public override Task<QueryResponse> Query(QueryRequest request, ServerCallContext context)
         {
             try {
