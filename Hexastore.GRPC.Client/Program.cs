@@ -13,12 +13,10 @@ namespace Hexastore.Client
     {
         static async Task Main(string[] args)
         {
-#if false
-            Greeter.GreeterClient client = new Greeter.GreeterClient(GrpcChannel.ForAddress("https://localhost:5001"));
+            Greeter.GreeterClient client = new Greeter.GreeterClient(GrpcChannel.ForAddress("http://localhost:49185"));
             var response = await client.SayHelloAsync(new HelloRequest { Name = "HAL" });
 
             Console.WriteLine(response.Message);
-#endif
 
 #if false
             Console.WriteLine("Hello World!");
@@ -49,8 +47,8 @@ namespace Hexastore.Client
     public class HexDriver
     {
         private readonly Random _rand = new();
-        private readonly Ingest.IngestClient _ingestClient = new Ingest.IngestClient(GrpcChannel.ForAddress("http://localhost:5000"));
-        private readonly Query.QueryClient _queryClient = new Query.QueryClient(GrpcChannel.ForAddress("http://localhost:5000"));
+        private readonly Ingest.IngestClient _ingestClient = new Ingest.IngestClient(GrpcChannel.ForAddress("http://localhost:49185"));
+        private readonly Query.QueryClient _queryClient = new Query.QueryClient(GrpcChannel.ForAddress("http://localhost:49185"));
         private readonly string _storeId;
         private readonly Stopwatch _watch = Stopwatch.StartNew();
         public long Total { get; set; }
